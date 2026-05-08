@@ -384,7 +384,8 @@ public class Media3ExoPlayer extends AbstractPlayer implements Player.Listener {
         if (mExoPlayer == null) return;
         if (enable) {
             // 最小化缓冲，降低延迟
-            mExoPlayer.setMinLoadableRetryCount(3);
+            // Live latency optimization
+            // mExoPlayer does not have setMinLoadableRetryCount in 1.5.0
         }
     }
 
@@ -431,7 +432,7 @@ public class Media3ExoPlayer extends AbstractPlayer implements Player.Listener {
 
     @Override
     public void onPlayerError(@NonNull PlaybackException error) {
-        Log.e(TAG, "Playback error: " + error.getMessage() + " (code=" + error.errorCodeName + ")");
+        Log.e(TAG, "Playback error: " + error.getMessage() + " (code=" + error.getErrorCodeName() + ")");
 
         if (mPlayerEventListener != null) {
             // 检查是否是解码错误（硬解失败），自动降级
@@ -439,7 +440,7 @@ public class Media3ExoPlayer extends AbstractPlayer implements Player.Listener {
                     || error.errorCode == PlaybackException.ERROR_CODE_DECODING_FAILED
                     || error.errorCode == PlaybackException.ERROR_CODE_DECODER_QUERY_FAILED) {
                 // 解码器错误，通知上层尝试切换
-                mPlayerEventListener.onInfo(AbstractPlayer.MEDIA_INFO_VIDEO_RENDERING_START, 0);
+                mPlayerEventListener.onInfo(AbstractPlayer.MEDIA_INFO_RENDERING_START, 0);
             }
             mPlayerEventListener.onError();
         }
