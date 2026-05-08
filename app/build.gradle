@@ -77,12 +77,17 @@ android {
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
+        coreLibraryDesugaringEnabled = true
     }
 
     lint {
         checkReleaseBuilds false
         abortOnError false
     }
+
+    // Media3 1.9.2 需要 compileSdk 35，但我们保持 34 以兼容安卓6
+    // 跳过 AAR 元数据检查即可
+    checkAarMetadata false
 //    dexOptions {
 //        javaMaxHeapSize "4g"
 //        additionalParameters += '--multi-dex'
@@ -157,5 +162,6 @@ dependencies {
     implementation 'org.conscrypt:conscrypt-android:2.5.2'
     implementation 'org.apache.commons:commons-text:1.10.0'
     implementation 'androidx.annotation:annotation:1.8.2'
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs_nio:2.1.5'
 }
 
