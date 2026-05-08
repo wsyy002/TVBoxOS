@@ -12,8 +12,6 @@ import com.github.tvbox.osc.R;
 import com.github.tvbox.osc.bean.DriveFolderFile;
 import com.github.tvbox.osc.util.StorageDriveType;
 
-import java.util.List;
-
 /**
  * 驱动文件列表适配器
  */
@@ -37,7 +35,7 @@ public class DriveAdapter extends BaseQuickAdapter<DriveFolderFile, BaseViewHold
         TextView tvInfo = helper.getView(R.id.tvInfo);
         View delIcon = helper.getView(R.id.delIcon);
 
-        // 返回按钮特殊处理
+        // 返回按钮
         if (item.parentFolder == item || (item.name == null && item.parentFolder == null)) {
             ivIcon.setImageResource(R.drawable.ic_folder_back);
             tvName.setText("返回上一级");
@@ -53,17 +51,14 @@ public class DriveAdapter extends BaseQuickAdapter<DriveFolderFile, BaseViewHold
         }
 
         if (item.isFile) {
-            // 视频文件
             if (StorageDriveType.isVideoType(item.fileType)) {
-                ivIcon.setImageResource(R.drawable.ic_video);
+                ivIcon.setImageResource(R.drawable.icon_video);
             } else {
-                ivIcon.setImageResource(R.drawable.ic_file);
+                ivIcon.setImageResource(R.drawable.icon_file);
             }
-            String size = formatSize(item.size);
-            tvInfo.setText(size);
+            tvInfo.setText(formatSize(item.size));
         } else {
-            // 目录
-            ivIcon.setImageResource(R.drawable.ic_folder);
+            ivIcon.setImageResource(R.drawable.icon_folder);
             tvInfo.setText("");
         }
 

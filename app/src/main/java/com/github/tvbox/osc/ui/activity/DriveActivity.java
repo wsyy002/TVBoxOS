@@ -1,6 +1,7 @@
 package com.github.tvbox.osc.ui.activity;
 
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.InputType;
 import android.view.View;
@@ -228,9 +229,8 @@ public class DriveActivity extends BaseActivity {
         StorageDriveType.TYPE[] types = StorageDriveType.TYPE.values();
         SelectDialog<StorageDriveType.TYPE> dialog = new SelectDialog<>(this);
         dialog.setTip("选择存储类型");
-        dialog.setItemCheckDisplay(false);
         String[] typeNames = StorageDriveType.getTypeNames();
-        dialog.setAdapter(null, new SelectDialogAdapter.SelectDialogInterface<StorageDriveType.TYPE>() {
+        dialog.setAdapter(new SelectDialogAdapter.SelectDialogInterface<StorageDriveType.TYPE>() {
             @Override
             public void click(StorageDriveType.TYPE value, int pos) {
                 dialog.dismiss();
