@@ -274,7 +274,7 @@ public class DriveActivity extends BaseActivity {
         builder.setPositiveButton("确定", (dialog, which) -> {
             String path = input.getText().toString().trim();
             if (!path.isEmpty()) {
-                RoomDataManger.insertDriveRecord(finalText, StorageDriveType.TYPE.LOCAL.ordinal(), null);
+                RoomDataManger.insertDriveRecord(path, StorageDriveType.TYPE.LOCAL.ordinal(), null);
                 EventBus.getDefault().post(new RefreshEvent(RefreshEvent.TYPE_DRIVE_REFRESH));
             }
         });
@@ -327,7 +327,7 @@ public class DriveActivity extends BaseActivity {
             JsonObject config = new JsonObject();
             config.addProperty("url", finalText);
 
-            String name = title + " - " + finalText.substring(0, Math.min(text.length(), 30));
+            String name = title + " - " + finalText.substring(0, Math.min(finalText.length(), 30));
             RoomDataManger.insertDriveRecord(name, type.ordinal(), config.toString());
             EventBus.getDefault().post(new RefreshEvent(RefreshEvent.TYPE_DRIVE_REFRESH));
         });
