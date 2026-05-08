@@ -87,7 +87,6 @@ android {
 
     // Media3 1.9.2 需要 compileSdk 35，但我们保持 34 以兼容安卓6
     // 跳过 AAR 元数据检查即可
-    checkAarMetadata false
 //    dexOptions {
 //        javaMaxHeapSize "4g"
 //        additionalParameters += '--multi-dex'
