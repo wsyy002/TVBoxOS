@@ -4,7 +4,8 @@ plugins {
 }
 
 android {
-    compileSdk 33
+    namespace 'com.github.tvbox.pyramid'
+    compileSdk 34
 
     defaultConfig {
         minSdkVersion 19

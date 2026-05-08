@@ -3,7 +3,8 @@ plugins {
 }
 
 android {
-    compileSdkVersion 33
+    namespace 'com.whl.quickjs'
+    compileSdk 34
 
     defaultConfig {
         minSdkVersion 16
