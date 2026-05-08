@@ -24,7 +24,7 @@ import android.widget.FrameLayout;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.github.tvbox.osc.player.R;
+import xyz.doikki.videoplayer.R;
 
 import java.io.IOException;
 import java.util.ArrayList;

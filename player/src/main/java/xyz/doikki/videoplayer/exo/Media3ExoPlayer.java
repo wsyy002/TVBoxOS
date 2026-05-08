@@ -41,7 +41,6 @@ import androidx.media3.exoplayer.upstream.DefaultBandwidthMeter;
 import androidx.media3.exoplayer.util.EventLogger;
 
 import java.io.File;
-import java.net.URI;
 import java.util.Map;
 
 import xyz.doikki.videoplayer.player.AbstractPlayer;
@@ -91,12 +90,6 @@ public class Media3ExoPlayer extends AbstractPlayer implements Player.Listener {
 
         // 轨道选择器
         DefaultTrackSelector trackSelector = new DefaultTrackSelector(mAppContext);
-        // 优先选择高质量轨道
-        trackSelector.setParameters(
-                trackSelector.getParameters().buildUpon()
-                        .setForceHighestSupportedTrack(true)
-                        .build()
-        );
         mTrackSelector = trackSelector;
 
         // 媒体源工厂
@@ -169,14 +162,11 @@ public class Media3ExoPlayer extends AbstractPlayer implements Player.Listener {
 
     private MediaItem buildMediaItem(String path, Map<String, String> headers) {
         MediaItem.Builder builder = new MediaItem.Builder()
-                .setUri(URI.create(path));
+                .setUri(android.net.Uri.parse(path));
 
         if (headers != null && !headers.isEmpty()) {
-            MediaItem.RequestHeaders.Builder headerBuilder = new MediaItem.RequestHeaders.Builder();
-            for (Map.Entry<String, String> entry : headers.entrySet()) {
-                headerBuilder.add(entry.getKey(), entry.getValue());
-            }
-            builder.setRequestHeaders(headerBuilder.build());
+            // Headers not supported via MediaItem in Media3 1.5.0
+            // They will be applied via DataSource factory
         }
 
         return builder.build();
