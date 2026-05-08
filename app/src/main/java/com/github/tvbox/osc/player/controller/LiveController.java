@@ -33,7 +33,7 @@ public class LiveController extends BaseController {
     @Override
     protected void initView() {
         super.initView();
-        mLoading = findViewById(R.id.loading);
+        mLoading = findViewById(android.R.id.progress);
     }
 
     public interface LiveControlListener {

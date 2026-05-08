@@ -274,7 +274,7 @@ public class DriveActivity extends BaseActivity {
         builder.setPositiveButton("确定", (dialog, which) -> {
             String path = input.getText().toString().trim();
             if (!path.isEmpty()) {
-                RoomDataManger.insertDriveRecord(path, StorageDriveType.TYPE.LOCAL.ordinal(), null);
+                RoomDataManger.insertDriveRecord(finalText, StorageDriveType.TYPE.LOCAL.ordinal(), null);
                 EventBus.getDefault().post(new RefreshEvent(RefreshEvent.TYPE_DRIVE_REFRESH));
             }
         });
@@ -319,14 +319,15 @@ public class DriveActivity extends BaseActivity {
 
         builder.setPositiveButton("确定", (dialog, which) -> {
             String text = input.getText().toString().trim();
-            if (text.isEmpty()) {
+            final String finalText = text;
+            if (finalText.isEmpty()) {
                 Toast.makeText(this, "请输入地址", Toast.LENGTH_SHORT).show();
                 return;
             }
             JsonObject config = new JsonObject();
-            config.addProperty("url", text);
+            config.addProperty("url", finalText);
 
-            String name = title + " - " + text.substring(0, Math.min(text.length(), 30));
+            String name = title + " - " + finalText.substring(0, Math.min(text.length(), 30));
             RoomDataManger.insertDriveRecord(name, type.ordinal(), config.toString());
             EventBus.getDefault().post(new RefreshEvent(RefreshEvent.TYPE_DRIVE_REFRESH));
         });

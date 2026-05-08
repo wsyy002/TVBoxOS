@@ -85,7 +85,7 @@ public class OkGoHelper {
         builder.dns(new CustomDns(dnsOverHttps));
         ItvClient=builder.build();
 
-        ExoMediaSourceHelper.getInstance(App.getInstance()).setOkClient(ItvClient);
+        
     }
 
     public static DnsOverHttps dnsOverHttps = null;
