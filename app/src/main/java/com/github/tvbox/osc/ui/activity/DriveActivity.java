@@ -310,24 +310,25 @@ public class DriveActivity extends BaseActivity {
         builder.setView(dialogView);
 
         // 简单处理：使用 dialog_api 布局，只有一个输入框
+        final EditText finalInput;
         EditText input = dialogView.findViewById(android.R.id.edit);
         if (input == null) {
             input = new EditText(this);
             dialogView = input;
             builder.setView(input);
         }
+        finalInput = input;
 
         builder.setPositiveButton("确定", (dialog, which) -> {
-            String text = input.getText().toString().trim();
-            final String finalText = text;
-            if (finalText.isEmpty()) {
+            String urlText = finalInput.getText().toString().trim();
+            if (urlText.isEmpty()) {
                 Toast.makeText(this, "请输入地址", Toast.LENGTH_SHORT).show();
                 return;
             }
             JsonObject config = new JsonObject();
-            config.addProperty("url", finalText);
+            config.addProperty("url", urlText);
 
-            String name = title + " - " + finalText.substring(0, Math.min(finalText.length(), 30));
+            String name = title + " - " + urlText.substring(0, Math.min(urlText.length(), 30));
             RoomDataManger.insertDriveRecord(name, type.ordinal(), config.toString());
             EventBus.getDefault().post(new RefreshEvent(RefreshEvent.TYPE_DRIVE_REFRESH));
         });
