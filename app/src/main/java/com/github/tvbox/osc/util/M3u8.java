@@ -2,7 +2,7 @@ package com.github.tvbox.osc.util;
 
 import static com.github.tvbox.osc.util.RegexUtils.getPattern;
 
-import com.google.android.exoplayer2.util.UriUtil;
+import android.net.Uri;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -318,9 +318,9 @@ public class M3u8 {
         if (line.startsWith(TAG_KEY)) {
             Matcher matcher = REGEX_URI.matcher(line);
             String value = matcher.find() ? matcher.group(1) : null;
-            return value == null ? line : line.replace(value, UriUtil.resolve(base, value));
+            return value == null ? line : line.replace(value, Uri.parse(base).buildUpon().appendEncodedPath(value).build().toString());
         } else {
-            return UriUtil.resolve(base, line);
+            return Uri.parse(base).buildUpon().appendEncodedPath(line).build().toString();
         }
     }
 }
