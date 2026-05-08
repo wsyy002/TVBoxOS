@@ -16,7 +16,11 @@ android {
             abiFilters "armeabi-v7a"
         }
         python {
-            buildPython("D:/Programs/Python/Python38/python.exe")
+            // 在 CI 环境下自动检测 Python
+            def pyPath = System.getProperty("os.name").toLowerCase().contains("win") 
+                ? "D:/Programs/Python/Python38/python.exe" 
+                : "/usr/bin/python3"
+            buildPython(pyPath)
             pip {
                 install "lxml"
                 install "ujson"
