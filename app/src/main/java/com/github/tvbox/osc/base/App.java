@@ -59,6 +59,13 @@ public class App extends MultiDexApplication {
         PlayerHelper.init();
         QuickJSLoader.init();
         FileUtils.cleanPlayerCache();
+
+        // 启动本地代理服务器（SMB/FTP/WebDAV 中转）
+        try {
+            com.github.tvbox.osc.util.LocalProxyServer.getInstance().start();
+        } catch (Exception e) {
+            LOG.e("LocalProxyServer init error: " + e.getMessage());
+        }
     }
 
     private void initParams() {

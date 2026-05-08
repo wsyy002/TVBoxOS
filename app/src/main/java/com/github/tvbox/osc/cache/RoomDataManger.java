@@ -153,4 +153,23 @@ public class RoomDataManger {
     public static List<VodCollect> getAllVodCollect() {
         return AppDataManager.get().getVodCollectDao().getAll();
     }
+
+    // ============ Drive Storage ============
+
+    public static List<StorageDrive> getAllDrives() {
+        return AppDataManager.get().getStorageDriveDao().getAll();
+    }
+
+    public static void insertDriveRecord(String name, int driveType, String configJson) {
+        StorageDrive drive = new StorageDrive(name, driveType, configJson);
+        AppDataManager.get().getStorageDriveDao().insert(drive);
+    }
+
+    public static void deleteDrive(int id) {
+        AppDataManager.get().getStorageDriveDao().deleteById(id);
+    }
+
+    public static void updateDrive(StorageDrive drive) {
+        AppDataManager.get().getStorageDriveDao().update(drive);
+    }
 }

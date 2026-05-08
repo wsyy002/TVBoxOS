@@ -1,7 +1,7 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 33
+    compileSdk 34
 
     defaultConfig {
         applicationId 'com.github.tvbox.osc'
@@ -17,8 +17,10 @@ android {
         }
     }
 
-    packagingOptions {
-        exclude 'META-INF/DEPENDENCIES'
+    packaging {
+        resources {
+            excludes += ['META-INF/DEPENDENCIES']
+        }
     }
 
     flavorDimensions "mode"
@@ -76,7 +78,7 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
 
-    lintOptions {
+    lint {
         checkReleaseBuilds false
         abortOnError false
     }
@@ -95,49 +97,64 @@ dependencies {
     api fileTree(dir: "libs", include: ["*.jar","*.aar"])
 
     implementation 'org.nanohttpd:nanohttpd:2.3.1'
-    implementation 'com.google.zxing:core:3.3.0'
-    implementation 'androidx.appcompat:appcompat:1.3.0'
-    implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
+    implementation 'com.google.zxing:core:3.5.1'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
-    implementation 'androidx.recyclerview:recyclerview:1.2.1'
-//    implementation files('libs/thunder.jar')
-//    implementation files('libs/commons-lang3-3.12.0.jar')
-
+    implementation 'androidx.recyclerview:recyclerview:1.3.2'
 
     implementation 'com.squareup.okhttp3:okhttp:3.12.11'
     annotationProcessor 'androidx.room:room-compiler:2.3.0'
     implementation 'androidx.room:room-runtime:2.3.0'
     implementation 'androidx.multidex:multidex:2.0.1'
-    implementation 'com.squareup.okio:okio:2.8.0'
-    implementation 'com.github.CymChad:BaseRecyclerViewAdapterHelper:2.9.45-androidx'
+    implementation 'com.squareup.okio:okio:3.3.0'
+    implementation 'com.github.CymChad:BaseRecyclerViewAdapterHelper:2.9.49-androidx'
     implementation 'com.kingja.loadsir:loadsir:1.3.8'
-    implementation 'com.google.code.gson:gson:2.8.7'
-    implementation 'com.squareup.picasso:picasso:2.71828'
+    implementation 'com.google.code.gson:gson:2.10.1'
+    implementation 'com.github.bumptech.glide:glide:4.16.0'
     implementation 'me.jessyan:autosize:1.2.1'
-    implementation('com.thoughtworks.xstream:xstream:1.4.15') {
+    implementation('com.thoughtworks.xstream:xstream:1.4.20') {
         exclude group: 'xmlpull', module: 'xmlpull'
     }
-    implementation 'org.greenrobot:eventbus:3.2.0'
+    implementation 'org.greenrobot:eventbus:3.3.1'
     implementation 'com.orhanobut:hawk:2.0.1'
 
     implementation project(":player")
     implementation project(":quickjs")
     pythonImplementation project(":pyramid")
 
-
     implementation 'com.lzy.net:okgo:3.0.4'
-    // implementation 'com.tencent.bugly:crashreport_upgrade:latest.release'
     implementation 'com.owen:tv-recyclerview:3.0.0'
 
-    implementation 'com.github.getActivity:XXPermissions:13.6'
-    implementation 'org.jsoup:jsoup:1.14.1'
+    // Media3 (ExoPlayer)
+    implementation "androidx.media3:media3-exoplayer:1.9.2"
+    implementation "androidx.media3:media3-exoplayer-hls:1.9.2"
+    implementation "androidx.media3:media3-exoplayer-dash:1.9.2"
+    implementation "androidx.media3:media3-exoplayer-rtsp:1.9.2"
+    implementation "androidx.media3:media3-exoplayer-smoothstreaming:1.9.2"
+    implementation "androidx.media3:media3-datasource-rtmp:1.9.2"
+    implementation "androidx.media3:media3-ui:1.9.2"
+    implementation "androidx.media3:media3-common:1.9.2"
+    implementation "androidx.media3:media3-session:1.9.2"
+
+    // WebDAV
+    implementation('com.github.thegrizzlylabs:sardine-android:0.8') {
+        exclude group: 'com.squareup.okhttp3'
+    }
+
+    // SMB (jcifs-ng 支��� SMB2/3)
+    implementation 'eu.agno3.jcifs:jcifs-ng:2.1.7'
+
+    // FTP
+    implementation 'commons-net:commons-net:3.9.0'
+
+    implementation 'com.github.getActivity:XXPermissions:18.5'
+    implementation 'org.jsoup:jsoup:1.16.1'
     implementation 'com.github.hedzr:android-file-chooser:v1.2.0-final'
-    implementation 'commons-io:commons-io:2.11.0'
+    implementation 'commons-io:commons-io:2.13.0'
     implementation 'com.googlecode.juniversalchardet:juniversalchardet:1.0.3'
-    //支持http3
-    implementation ('com.google.net.cronet:cronet-okhttp:0.1.0')
-//    implementation 'com.google.android.gms:play-services-cronet:18.0.1'
-    implementation ('org.chromium.net:cronet-embedded:101.4951.41')
-    implementation 'org.brotli:dec:0.1.2'
+    implementation 'org.conscrypt:conscrypt-android:2.5.2'
+    implementation 'org.apache.commons:commons-text:1.10.0'
+    implementation 'androidx.annotation:annotation:1.8.2'
 }
 

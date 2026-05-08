@@ -24,6 +24,7 @@ import com.github.tvbox.osc.ui.activity.HistoryActivity;
 import com.github.tvbox.osc.ui.activity.LivePlayActivity;
 import com.github.tvbox.osc.ui.activity.PushActivity;
 import com.github.tvbox.osc.ui.activity.SearchActivity;
+import com.github.tvbox.osc.ui.activity.DriveActivity;
 import com.github.tvbox.osc.ui.activity.SettingActivity;
 import com.github.tvbox.osc.ui.adapter.HomeHotVodAdapter;
 import com.github.tvbox.osc.util.FastClickCheckUtil;
@@ -62,6 +63,7 @@ public class UserFragment extends BaseLazyFragment implements View.OnClickListen
     private LinearLayout tvHistory;
     private LinearLayout tvCollect;
     private LinearLayout tvPush;
+    private LinearLayout tvDrive;
     public static HomeHotVodAdapter homeHotVodAdapter;
     private List<Movie.Video> homeSourceRec;
     public static TvRecyclerView tvHotList;
@@ -145,18 +147,21 @@ public class UserFragment extends BaseLazyFragment implements View.OnClickListen
         tvCollect = findViewById(R.id.tvFavorite);
         tvHistory = findViewById(R.id.tvHistory);
         tvPush = findViewById(R.id.tvPush);
+        tvDrive = findViewById(R.id.tvDrive);
         tvLive.setOnClickListener(this);
         tvSearch.setOnClickListener(this);
         tvSetting.setOnClickListener(this);
         tvHistory.setOnClickListener(this);
         tvPush.setOnClickListener(this);
         tvCollect.setOnClickListener(this);
+        tvDrive.setOnClickListener(this);
         tvLive.setOnFocusChangeListener(focusChangeListener);
         tvSearch.setOnFocusChangeListener(focusChangeListener);
         tvSetting.setOnFocusChangeListener(focusChangeListener);
         tvHistory.setOnFocusChangeListener(focusChangeListener);
         tvPush.setOnFocusChangeListener(focusChangeListener);
         tvCollect.setOnFocusChangeListener(focusChangeListener);
+        tvDrive.setOnFocusChangeListener(focusChangeListener);
         tvHotList = findViewById(R.id.tvHotList);
         if (Hawk.get(HawkConfig.HOME_REC, 0) == 1 && homeSourceRec!=null) {
             style=ImgUtil.initStyle();
@@ -354,6 +359,8 @@ public class UserFragment extends BaseLazyFragment implements View.OnClickListen
             jumpActivity(PushActivity.class);
         } else if (v.getId() == R.id.tvFavorite) {
             jumpActivity(CollectActivity.class);
+        } else if (v.getId() == R.id.tvDrive) {
+            jumpActivity(DriveActivity.class);
         }
     }
 

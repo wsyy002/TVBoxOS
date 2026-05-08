@@ -65,6 +65,9 @@
             android:name=".ui.activity.FastSearchActivity"
             android:screenOrientation="sensorLandscape" />
         <activity
+            android:name=".ui.activity.DriveActivity"
+            android:screenOrientation="sensorLandscape" />
+        <activity
             android:name=".ui.activity.SettingActivity"
             android:screenOrientation="sensorLandscape" />
         <activity

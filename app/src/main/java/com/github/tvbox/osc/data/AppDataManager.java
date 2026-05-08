@@ -108,6 +108,21 @@ public class AppDataManager {
         }
     };
 
+    /**
+     * 新增 storage_drive 表
+     */
+    static final Migration MIGRATION_1_2_STORAGE = new Migration(1, 2) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL("CREATE TABLE IF NOT EXISTS `storage_drive` (" +
+                    "`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                    "`name` TEXT, " +
+                    "`driveType` INTEGER NOT NULL DEFAULT 0, " +
+                    "`configJson` TEXT, " +
+                    "`sortOrder` INTEGER NOT NULL DEFAULT 0)");
+        }
+    };
+
     static String dbPath() {
         return DB_NAME + ".v" + DB_FILE_VERSION + ".db";
     }

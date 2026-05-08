@@ -59,8 +59,25 @@ public class IjkMediaPlayer extends IjkPlayer {
         }
         mMediaPlayer.setOption(tv.danmaku.ijk.media.player.IjkMediaPlayer.OPT_CATEGORY_PLAYER, "max-fps", 30);
 
-        // 设置视频流格式
-//        mMediaPlayer.setOption(tv.danmaku.ijk.media.player.IjkMediaPlayer.OPT_CATEGORY_PLAYER, "overlay-format", tv.danmaku.ijk.media.player.IjkMediaPlayer.SDL_FCC_RV32);
+        // ========== GPU 硬解配置 ==========
+        // 启用 MediaCodec（GPU 硬解码）
+        mMediaPlayer.setOption(tv.danmaku.ijk.media.player.IjkMediaPlayer.OPT_CATEGORY_PLAYER,
+                "mediacodec", 1);
+        // 硬解自动旋转
+        mMediaPlayer.setOption(tv.danmaku.ijk.media.player.IjkMediaPlayer.OPT_CATEGORY_PLAYER,
+                "mediacodec-auto-rotate", 1);
+        // 分辨率变化时保持硬解
+        mMediaPlayer.setOption(tv.danmaku.ijk.media.player.IjkMediaPlayer.OPT_CATEGORY_PLAYER,
+                "mediacodec-handle-resolution-change", 1);
+        // HEVC (H.265) 硬解
+        mMediaPlayer.setOption(tv.danmaku.ijk.media.player.IjkMediaPlayer.OPT_CATEGORY_PLAYER,
+                "mediacodec-hevc", 1);
+        // AV1 硬解（如果芯片支持）
+        mMediaPlayer.setOption(tv.danmaku.ijk.media.player.IjkMediaPlayer.OPT_CATEGORY_PLAYER,
+                "mediacodec-av1", 1);
+        // 兼容旧设备：跳过环路滤波器降低解码压力
+        mMediaPlayer.setOption(tv.danmaku.ijk.media.player.IjkMediaPlayer.OPT_CATEGORY_CODEC,
+                "skip_loop_filter", 48);
 
         //开启内置字幕
         mMediaPlayer.setOption(tv.danmaku.ijk.media.player.IjkMediaPlayer.OPT_CATEGORY_PLAYER, "subtitle", 1);
