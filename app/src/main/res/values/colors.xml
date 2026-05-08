@@ -38,7 +38,7 @@
     <color name="color_dialog_bg">#88000000</color>
     <color name="color_scrollview_bg">#44000000</color>
     <color name="color_text_primary">#FFFFFAE0</color>
-
-
+    <color name="color_0E121B">#FF0E121B</color>
+    <color name="color_999999">#FF999999</color>
 
 </resources>
