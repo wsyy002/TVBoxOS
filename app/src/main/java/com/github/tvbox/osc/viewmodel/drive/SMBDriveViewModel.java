@@ -28,8 +28,11 @@ public class SMBDriveViewModel extends AbstractDriveViewModel {
             CIFSContext baseCtx = SingletonContext.getInstance();
             if (!username.isEmpty()) {
                 // jcifs-ng: NtlmPasswordAuthentication is the concrete Credentials implementation
-                jcifs.Credentials creds = new jcifs.smb.NtlmPasswordAuthentication(username, password);
-                smbContext = baseCtx.withCredentials(creds);
+                String domain = config.has("domain") ? config.get("domain").getAsString() : "";
+                // jcifs-ng 2.1.7: NtlmPasswordAuthentication(CIFSContext, String domain, String username, String password)
+                smbContext = baseCtx.withCredentials(new jcifs.smb.NtlmPasswordAuthentication(
+                        baseCtx, domain, username, password
+                ));
             } else {
                 smbContext = baseCtx;
             }
