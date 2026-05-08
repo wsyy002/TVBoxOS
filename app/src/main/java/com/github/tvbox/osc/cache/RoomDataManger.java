@@ -98,7 +98,6 @@ public class RoomDataManger {
                         info = getVodInfoGson().fromJson(record.dataJson, new TypeToken<VodInfo>() {
                         }.getType());
                         info.sourceKey = record.sourceKey;
-//                        SourceBean sourceBean = ApiConfig.get().getSource(info.sourceKey);
                         if (info.name == null)
                             info = null;
                     }
@@ -154,22 +153,45 @@ public class RoomDataManger {
         return AppDataManager.get().getVodCollectDao().getAll();
     }
 
-    // ============ Drive Storage ============
+    // ============ Drive Storage (使用 Hawk 存储) ============
+
+    private static final String KEY_DRIVES = "stored_drives";
 
     public static List<StorageDrive> getAllDrives() {
-        return AppDataManager.get().getStorageDriveDao().getAll();
+        String json = Hawk.get(KEY_DRIVES, "[]");
+        try {
+            return new Gson().fromJson(json, new TypeToken<List<StorageDrive>>(){}.getType());
+        } catch (Exception e) {
+            return new ArrayList<>();
+        }
     }
 
     public static void insertDriveRecord(String name, int driveType, String configJson) {
-        StorageDrive drive = new StorageDrive(name, driveType, configJson);
-        AppDataManager.get().getStorageDriveDao().insert(drive);
+        List<StorageDrive> drives = getAllDrives();
+        StorageDrive drive = new StorageDrive();
+        drive.id = drives.size() + 1;
+        drive.name = name;
+        drive.driveType = driveType;
+        drive.configJson = configJson;
+        drive.sortOrder = drives.size();
+        drives.add(drive);
+        Hawk.put(KEY_DRIVES, new Gson().toJson(drives));
     }
 
     public static void deleteDrive(int id) {
-        AppDataManager.get().getStorageDriveDao().deleteById(id);
+        List<StorageDrive> drives = getAllDrives();
+        drives.removeIf(d -> d.id == id);
+        Hawk.put(KEY_DRIVES, new Gson().toJson(drives));
     }
 
     public static void updateDrive(StorageDrive drive) {
-        AppDataManager.get().getStorageDriveDao().update(drive);
+        List<StorageDrive> drives = getAllDrives();
+        for (int i = 0; i < drives.size(); i++) {
+            if (drives.get(i).id == drive.id) {
+                drives.set(i, drive);
+                break;
+            }
+        }
+        Hawk.put(KEY_DRIVES, new Gson().toJson(drives));
     }
 }
