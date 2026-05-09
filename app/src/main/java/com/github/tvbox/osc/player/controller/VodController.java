@@ -157,6 +157,7 @@ public class VodController extends BaseController {
     public TextView mPlayerSpeedBtn;
     TextView mPlayerBtn;
     TextView mPlayerIJKBtn;
+    TextView mPlayerExoCodecBtn;
     TextView mPlayerRetry;
     TextView mPlayrefresh;
     public TextView mPlayerTimeStartEndText;
@@ -170,6 +171,7 @@ public class VodController extends BaseController {
     TextView mZimuBtn;
     TextView mAudioTrackBtn;
     public TextView mLandscapePortraitBtn;
+    public TextView mDanmakuSwitchBtn;
     private View backBtn;//返回键
     private boolean isClickBackBtn;
     TextView seekTime; //右上角进度时间显示
@@ -241,6 +243,7 @@ public class VodController extends BaseController {
         mPlayerSpeedBtn = findViewById(R.id.play_speed);
         mPlayerBtn = findViewById(R.id.play_player);
         mPlayerIJKBtn = findViewById(R.id.play_ijk);
+        mPlayerExoCodecBtn = findViewById(R.id.play_exo_codec);
         mPlayerTimeStartEndText = findViewById(R.id.play_time_start_end_text);
         mPlayerTimeStartBtn = findViewById(R.id.play_time_start);
         mPlayerTimeSkipBtn = findViewById(R.id.play_time_end);
@@ -252,6 +255,7 @@ public class VodController extends BaseController {
         mZimuBtn = findViewById(R.id.zimu_select);
         mAudioTrackBtn = findViewById(R.id.audio_track_select);
         mLandscapePortraitBtn = findViewById(R.id.landscape_portrait);
+        mDanmakuSwitchBtn = findViewById(R.id.play_danmaku_switch);
         backBtn = findViewById(R.id.tv_back);
         seekTime = findViewById(R.id.tv_seek_time);
         mScreenDisplay = findViewById(R.id.screen_display);
@@ -562,6 +566,24 @@ public class VodController extends BaseController {
                 }
             }
         });
+        mPlayerExoCodecBtn.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                myHandle.removeCallbacks(myRunnable);
+                myHandle.postDelayed(myRunnable, myHandleSeconds);
+                try {
+                    String currentCodec = Hawk.get(HawkConfig.EXO_CODEC, "硬解码");
+                    String newCodec = "硬解码".equals(currentCodec) ? "软解码" : "硬解码";
+                    Hawk.put(HawkConfig.EXO_CODEC, newCodec);
+                    mPlayerExoCodecBtn.setText("Exo" + newCodec);
+                    listener.updatePlayerCfg();
+                    listener.replay(false);
+                    hideBottom();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
 //        增加播放页面片头片尾时间重置
         mPlayerTimeResetBtn.setOnClickListener(new OnClickListener() {
             @Override
@@ -666,6 +688,17 @@ public class VodController extends BaseController {
                 hideBottom();
             }
         });
+        mDanmakuSwitchBtn.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                FastClickCheckUtil.check(view);
+                boolean current = Hawk.get(HawkConfig.DANMAKU_SWITCH, false);
+                current = !current;
+                Hawk.put(HawkConfig.DANMAKU_SWITCH, current);
+                mDanmakuSwitchBtn.setText(current ? "弹幕开" : "弹幕关");
+                hideBottom();
+            }
+        });
         mLandscapePortraitBtn.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -763,11 +796,19 @@ public class VodController extends BaseController {
             mPlayerScaleBtn.setText(PlayerHelper.getScaleName(mPlayerConfig.getInt("sc")));
             mPlayerIJKBtn.setText(mPlayerConfig.getString("ijk"));
             mPlayerIJKBtn.setVisibility(playerType == 1 ? VISIBLE : GONE);
+            boolean isExo = playerType == 2;
+            mPlayerExoCodecBtn.setVisibility(isExo ? VISIBLE : GONE);
+            if (isExo) {
+                mPlayerExoCodecBtn.setText("Exo" + Hawk.get(HawkConfig.EXO_CODEC, "硬解码"));
+            }
             mPlayerScaleBtn.setText(PlayerHelper.getScaleName(mPlayerConfig.getInt("sc")));
             mPlayerSpeedBtn.setText("x" + mPlayerConfig.getDouble("sp"));
             mPlayerTimeStartBtn.setText(stringForTime(mPlayerConfig.getInt("st") * 1000));
             mPlayerTimeSkipBtn.setText(stringForTime(mPlayerConfig.getInt("et") * 1000));
             mAudioTrackBtn.setVisibility((playerType == 1 || playerType == 2) ? VISIBLE : GONE);
+            mDanmakuSwitchBtn.setVisibility((playerType == 1 || playerType == 2) ? VISIBLE : GONE);
+            boolean danmakuOn = Hawk.get(HawkConfig.DANMAKU_SWITCH, false);
+            mDanmakuSwitchBtn.setText(danmakuOn ? "弹幕开" : "弹幕关");
         } catch (JSONException e) {
             e.printStackTrace();
         }

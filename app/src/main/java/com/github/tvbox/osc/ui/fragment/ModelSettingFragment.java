@@ -76,6 +76,7 @@ public class ModelSettingFragment extends BaseLazyFragment {
     private TextView tvRecStyleText;
     private TextView tvIjkCachePlay;
     private TextView tvHomeDefaultShow;
+    private TextView tvExoCodec;
 
     public static ModelSettingFragment newInstance() {
         return new ModelSettingFragment().setArguments();
@@ -113,6 +114,8 @@ public class ModelSettingFragment extends BaseLazyFragment {
         tvHistoryNum = findViewById(R.id.tvHistoryNum);
         tvSearchView = findViewById(R.id.tvSearchView);
         tvIjkCachePlay = findViewById(R.id.tvIjkCachePlay);
+        tvExoCodec = findViewById(R.id.tvExoCodec);
+        tvExoCodec.setText(Hawk.get(HawkConfig.EXO_CODEC, "硬解码"));
         tvMediaCodec.setText(Hawk.get(HawkConfig.IJK_CODEC, "硬解码"));
         tvDebugOpen.setText(Hawk.get(HawkConfig.DEBUG_OPEN, false) ? "已打开" : "已关闭");
         tvParseWebView.setText(Hawk.get(HawkConfig.PARSE_WEBVIEW, true) ? "系统自带" : "XWalkView");
@@ -340,6 +343,44 @@ public class ModelSettingFragment extends BaseLazyFragment {
         });
 
 
+        findViewById(R.id.llExoCodec).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                FastClickCheckUtil.check(v);
+                ArrayList<String> codecOptions = new ArrayList<>();
+                codecOptions.add("硬解码");
+                codecOptions.add("软解码");
+                String current = Hawk.get(HawkConfig.EXO_CODEC, "硬解码");
+                int defaultPos = codecOptions.indexOf(current);
+                if (defaultPos < 0) defaultPos = 0;
+
+                SelectDialog<String> dialog = new SelectDialog<>(mActivity);
+                dialog.setTip("请选择Exo解码");
+                dialog.setAdapter(new SelectDialogAdapter.SelectDialogInterface<String>() {
+                    @Override
+                    public void click(String value, int pos) {
+                        Hawk.put(HawkConfig.EXO_CODEC, value);
+                        tvExoCodec.setText(value);
+                    }
+
+                    @Override
+                    public String getDisplay(String val) {
+                        return val;
+                    }
+                }, new DiffUtil.ItemCallback<String>() {
+                    @Override
+                    public boolean areItemsTheSame(@NonNull @NotNull String oldItem, @NonNull @NotNull String newItem) {
+                        return oldItem.equals(newItem);
+                    }
+
+                    @Override
+                    public boolean areContentsTheSame(@NonNull @NotNull String oldItem, @NonNull @NotNull String newItem) {
+                        return oldItem.equals(newItem);
+                    }
+                }, codecOptions, defaultPos);
+                dialog.show();
+            }
+        });
         findViewById(R.id.llMediaCodec).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

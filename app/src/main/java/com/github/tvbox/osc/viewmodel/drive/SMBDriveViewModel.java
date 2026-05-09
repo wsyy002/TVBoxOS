@@ -71,6 +71,7 @@ public class SMBDriveViewModel extends AbstractDriveViewModel {
             }
             return smbContext;
         } catch (Exception e) {
+            android.util.Log.e("SMB", "getSmbContext error", e);
             e.printStackTrace();
         }
         return null;
@@ -89,20 +90,28 @@ public class SMBDriveViewModel extends AbstractDriveViewModel {
             currentDriveNote = new DriveFolderFile(null, "", 0, false, null, null);
         }
 
+        if (currentDriveNote == null || currentDriveNote.name == null) {
+            currentDriveNote = new DriveFolderFile(null, "", 0, false, null, null);
+        }
+
         final String targetPath = baseUrl
-                + currentDriveNote.getAccessingPathStr()
+                + (currentDriveNote.getAccessingPathStr() != null ? currentDriveNote.getAccessingPathStr() : "")
                 + (currentDriveNote.name != null ? currentDriveNote.name : "");
 
+        android.util.Log.i("SMB", "loadData targetPath: " + targetPath + ", baseUrl: " + baseUrl);
+
         if (currentDriveNote.getChildren() == null) {
+            final String finalTargetPath = targetPath;
             new Thread() {
                 public void run() {
                     try {
                         CIFSContext ctx = getSmbContext();
                         if (ctx == null) {
+                            android.util.Log.e("SMB", "getSmbContext returned null");
                             if (callback != null) callback.fail("无法连接 SMB 服务器");
                             return;
                         }
-                        SmbFile smbFile = new SmbFile(targetPath, ctx);
+                        SmbFile smbFile = new SmbFile(finalTargetPath, ctx);
                         SmbFile[] files = smbFile.listFiles();
                         List<DriveFolderFile> items = new ArrayList<>();
                         if (files != null) {
@@ -128,11 +137,13 @@ public class SMBDriveViewModel extends AbstractDriveViewModel {
                         currentDriveNote.setChildren(items);
                         if (callback != null) callback.callback(items, false);
                     } catch (Exception e) {
+                        android.util.Log.e("SMB", "loadData error", e);
+                        e.printStackTrace();
                         if (callback != null) callback.fail("SMB 访问失败: " + e.getMessage());
                     }
                 }
             }.start();
-            return targetPath;
+            return finalTargetPath;
         } else {
             sortData(currentDriveNote.getChildren());
             if (callback != null) callback.callback(currentDriveNote.getChildren(), true);

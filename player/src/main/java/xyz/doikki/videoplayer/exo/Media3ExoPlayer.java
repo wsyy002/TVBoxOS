@@ -78,6 +78,32 @@ public class Media3ExoPlayer extends AbstractPlayer implements Player.Listener {
 
     public Media3ExoPlayer(Context context) {
         mAppContext = context.getApplicationContext();
+        mEnableHardwareDecoder = isHardwareDecoderEnabled();
+    }
+
+    private boolean mEnableHardwareDecoder = true;
+
+    /**
+     * 通过反射读取 Hawk 中的 Exo 解码器设置
+     */
+    private boolean isHardwareDecoderEnabled() {
+        if (mAppContext != null) {
+            try {
+                Class<?> hawkClass = Class.forName("com.orhanobut.hawk.Hawk");
+                java.lang.reflect.Method get = hawkClass.getMethod("get", String.class, Object.class);
+                String codec = (String) get.invoke(null, "exo_codec", "硬解码");
+                return "硬解码".equals(codec);
+            } catch (Exception ignored) {
+            }
+        }
+        return true;
+    }
+
+    /**
+     * 外部设置硬解开关（创建播放器前调用才有效）
+     */
+    public void setHardwareDecoderEnabled(boolean enabled) {
+        mEnableHardwareDecoder = enabled;
     }
 
     @Override
@@ -85,7 +111,11 @@ public class Media3ExoPlayer extends AbstractPlayer implements Player.Listener {
         // 播放器工厂配置：硬解优先，自动降级
         DefaultRenderersFactory renderersFactory = new DefaultRenderersFactory(mAppContext);
         renderersFactory.setEnableDecoderFallback(true);  // 硬解失败自动降级到软解
-        renderersFactory.setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER);  // 优先使用 MediaCodec (GPU)
+        renderersFactory.setExtensionRendererMode(
+            mEnableHardwareDecoder
+                ? DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER
+                : DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF
+        );  // 根据设置选择硬解/软解
         mRenderersFactory = renderersFactory;
 
         // 轨道选择器

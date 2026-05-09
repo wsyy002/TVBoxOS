@@ -301,6 +301,21 @@
                 android:textSize="@dimen/ts_20" />
 
             <TextView
+                android:id="@+id/play_exo_codec"
+                android:singleLine="true"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/vs_5"
+                android:layout_marginRight="@dimen/vs_5"
+                android:background="@drawable/button_dialog_main"
+                android:focusable="true"
+                android:padding="@dimen/vs_10"
+                android:text="Exo硬解"
+                android:visibility="gone"
+                android:textColor="@android:color/white"
+                android:textSize="@dimen/ts_20" />
+
+            <TextView
                 android:id="@+id/play_time_start_end_text"
                 android:singleLine="true"
                 android:layout_width="wrap_content"
@@ -383,6 +398,19 @@
                 android:textColor="@android:color/white"
                 android:textSize="@dimen/ts_20"/>
 
+            <TextView
+                android:id="@+id/play_danmaku_switch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/vs_5"
+                android:layout_marginRight="@dimen/vs_5"
+                android:background="@drawable/button_dialog_main"
+                android:focusable="true"
+                android:padding="@dimen/vs_10"
+                android:visibility="gone"
+                android:text="弹幕关"
+                android:textColor="@android:color/white"
+                android:textSize="@dimen/ts_20"/>
             <TextView
                 android:id="@+id/landscape_portrait"
                 android:layout_width="wrap_content"

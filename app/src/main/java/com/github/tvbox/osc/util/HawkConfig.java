@@ -17,6 +17,7 @@ public class HawkConfig {
     public static final String DEBUG_OPEN = "debug_open";
     public static final String PARSE_WEBVIEW = "parse_webview"; // true 系统 false xwalk
     public static final String IJK_CODEC = "ijk_codec";
+    public static final String EXO_CODEC = "exo_codec";
     public static final String PLAY_TYPE = "play_type";//0 系统 1 ijk 2 exo 10 MXPlayer
     public static final String LIVE_PLAY_TYPE = "live_play_type";//0 系统 1 ijk 2 exo 10 MXPlayer
     public static final String PLAY_RENDER = "play_render"; //0 texture 2
@@ -51,5 +52,6 @@ public class HawkConfig {
     public static final String LIVE_WEB_HEADER = "live_web_header";
     public static final String DEFAULT_LOAD_LIVE = "DEFAULT_LOAD_LIVE";
     public static final String SEARCH_HISTORY = "search_history";
+    public static final String DANMAKU_SWITCH = "danmaku_switch";
     public static boolean hotVodDelete;
 }
