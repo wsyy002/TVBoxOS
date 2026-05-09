@@ -180,6 +180,12 @@ public class SubtitleDialog extends BaseDialog {
         });
     }
 
+    public void showInternalSubtitle(boolean show) {
+        if (selectInternal != null) {
+            selectInternal.setVisibility(show ? View.VISIBLE : View.GONE);
+        }
+    }
+
     public void setLocalFileChooserListener(LocalFileChooserListener localFileChooserListener) {
         mLocalFileChooserListener = localFileChooserListener;
     }

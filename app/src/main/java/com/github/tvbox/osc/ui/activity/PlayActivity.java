@@ -280,6 +280,7 @@ public class PlayActivity extends BaseActivity {
         // 显示内置字幕按钮(Exo/IJK都显示)
         mController.mSubtitleView.hasInternal = true;
         subtitleDialog.selectInternal.setVisibility(View.VISIBLE);
+        subtitleDialog.showInternalSubtitle(true);
         subtitleDialog.setSubtitleViewListener(new SubtitleDialog.SubtitleViewListener() {
             @Override
             public void setTextSize(int size) {
