@@ -281,6 +281,10 @@ public class PlayActivity extends BaseActivity {
         mController.mSubtitleView.hasInternal = true;
         subtitleDialog.selectInternal.setVisibility(View.VISIBLE);
         subtitleDialog.showInternalSubtitle(true);
+        // 调试提示
+        if (playerType == 2) {
+            Toast.makeText(mContext, "Exo字幕弹窗已打开,selectInternal=" + (subtitleDialog.selectInternal != null ? "not null" : "null"), Toast.LENGTH_SHORT).show();
+        }
         subtitleDialog.setSubtitleViewListener(new SubtitleDialog.SubtitleViewListener() {
             @Override
             public void setTextSize(int size) {
