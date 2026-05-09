@@ -34,6 +34,16 @@ public class DriveFolderFile {
         this.modifiedDate = modifiedDate != null ? modifiedDate : 0;
         this.isDelMode = false;
         this.isSelected = false;
+        // 自动从父节点继承访问路径：父路径 + 父名称/  
+        if (parentFolder != null) {
+            String parentPath = parentFolder.getAccessingPathStr();
+            String parentName = parentFolder.name;
+            if (parentName != null && !parentName.isEmpty()) {
+                this.accessingPath = parentPath + parentName + "/";
+            } else {
+                this.accessingPath = parentPath;
+            }
+        }
     }
 
     public DriveFolderFile(StorageDrive drive) {

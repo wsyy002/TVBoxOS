@@ -258,14 +258,36 @@ public class ExoPlayer extends Media3ExoPlayer {
                         android.util.Log.d("SubCue", "onCues: null/empty");
                         return;
                     }
+                    // 调试：打印第一个Cue的类型和完整信息
+                    if (!cues.isEmpty()) {
+                        Cue first = cues.get(0);
+                        android.util.Log.d("SubCue", "Cue class=" + first.getClass().getName()
+                                + " text='" + first.text + "' toString=" + first.toString());
+                    }
                     StringBuilder sb = new StringBuilder();
                     for (Cue cue : cues) {
                         CharSequence textContent = cue.text;
+                        // 如果text为空，尝试所有可能的文本提取方式
                         if (textContent == null || textContent.length() == 0) {
+                            // 1. getText() method (Media3 newer API)
                             try {
                                 java.lang.reflect.Method m = cue.getClass().getMethod("getText");
                                 Object r = m.invoke(cue);
                                 if (r instanceof CharSequence) textContent = (CharSequence) r;
+                            } catch (Exception ignored) {}
+                        }
+                        if (textContent == null || textContent.length() == 0) {
+                            // 2. 反射扫描所有CharSequence字段
+                            try {
+                                for (java.lang.reflect.Field f : cue.getClass().getFields()) {
+                                    if (CharSequence.class.isAssignableFrom(f.getType())) {
+                                        Object v = f.get(cue);
+                                        if (v instanceof CharSequence && ((CharSequence) v).length() > 0) {
+                                            textContent = (CharSequence) v;
+                                            break;
+                                        }
+                                    }
+                                }
                             } catch (Exception ignored) {}
                         }
                         if (textContent != null && textContent.length() > 0) {
@@ -274,7 +296,7 @@ public class ExoPlayer extends Media3ExoPlayer {
                         }
                     }
                     final String text = sb.toString();
-                    android.util.Log.d("SubCue", "onCues: text='" + text + "' listener=" + (mExoSubtitleListener != null));
+                    android.util.Log.d("SubCue", "onCues: extracted='" + text + "' listener=" + (mExoSubtitleListener != null));
                     if (!text.isEmpty() && mExoSubtitleListener != null) {
                         mExoSubtitleListener.onSubtitleText(text);
                     }
