@@ -46,6 +46,9 @@ import java.util.Map;
 import xyz.doikki.videoplayer.player.AbstractPlayer;
 import xyz.doikki.videoplayer.player.VideoViewManager;
 import xyz.doikki.videoplayer.util.PlayerUtils;
+import androidx.media3.common.text.Cue;
+import android.os.Handler;
+import android.os.Looper;
 
 /**
  * Media3 版 ExoPlayer 播放器
@@ -477,4 +480,35 @@ public class Media3ExoPlayer extends AbstractPlayer implements Player.Listener {
     public void onTracksChanged(@NonNull Tracks tracks) {
         // 轨道变化回调
     }
+
+    @Override
+    public void onCues(@NonNull java.util.List<Cue> cues) {
+        if (cues == null || cues.isEmpty()) return;
+        // 提取字幕文本
+        StringBuilder sb = new StringBuilder();
+        for (Cue cue : cues) {
+            if (cue.text != null && !cue.text.isEmpty()) {
+                if (sb.length() > 0) sb.append("\n");
+                sb.append(cue.text);
+            }
+        }
+        final String subtitleText = sb.toString();
+        if (subtitleText.equals(mLastSubtitleText)) return;
+        mLastSubtitleText = subtitleText;
+
+        // 更新到字幕视图（如果已设置）
+        if (mSubtitleOutput != null) {
+            new Handler(Looper.getMainLooper()).post(() -> {
+                if (mSubtitleOutput != null) {
+                    mSubtitleOutput.setText(subtitleText);
+                    mSubtitleOutput.setVisibility(android.view.View.VISIBLE);
+                }
+            });
+        }
+    }
+
+    public void setSubtitleOutput(android.widget.TextView textView) {
+        mSubtitleOutput = textView;
+    }
+
 }

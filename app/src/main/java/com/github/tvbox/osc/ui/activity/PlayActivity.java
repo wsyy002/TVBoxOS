@@ -276,7 +276,7 @@ public class PlayActivity extends BaseActivity {
     void selectMySubtitle() throws Exception {
         SubtitleDialog subtitleDialog = new SubtitleDialog(PlayActivity.this);
         int playerType = mVodPlayerCfg.getInt("pl");
-        if (mController.mSubtitleView.hasInternal && playerType == 1) {
+        if (mController.mSubtitleView.hasInternal && (playerType == 1 || playerType == 2)) {
             subtitleDialog.selectInternal.setVisibility(View.VISIBLE);
         } else {
             subtitleDialog.selectInternal.setVisibility(View.GONE);
@@ -603,6 +603,8 @@ public class PlayActivity extends BaseActivity {
         if(mVideoView.getMediaPlayer() instanceof ExoPlayer){
             //加载上一次选中的
             ((ExoPlayer) mVideoView.getMediaPlayer()).loadDefaultTrack(progressKey);
+            //设置Exo内置字幕输出
+            ((ExoPlayer) mVideoView.getMediaPlayer()).setSubtitleOutput(mController.mSubtitleView);
         }
         mController.mSubtitleView.bindToMediaPlayer(mVideoView.getMediaPlayer());
         mController.mSubtitleView.setPlaySubtitleCacheKey(subtitleCacheKey);
