@@ -81,12 +81,12 @@ public class ExoPlayer extends Media3ExoPlayer {
                             // 字幕轨道: 添加格式信息到名称
                             String formatInfo = "";
                             if (fmt.sampleMimeType != null) {
-                                String mime = fmt.sampleMimeType;
-                                int slash = mime.lastIndexOf('/');
-                                if (slash >= 0) formatInfo = mime.substring(slash + 1).toUpperCase();
+                                formatInfo = formatSubtitleMime(fmt.sampleMimeType);
                             }
                             if (!formatInfo.isEmpty()) {
                                 bean.name = (bean.language.isEmpty() ? "未知" : bean.language) + " (" + formatInfo + ")";
+                            } else {
+                                bean.name = bean.language.isEmpty() ? "字幕" : bean.language;
                             }
                             data.addSubtitle(bean);
                         }
