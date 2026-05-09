@@ -112,20 +112,23 @@ public class SMBDriveViewModel extends AbstractDriveViewModel {
                             return;
                         }
                         SmbFile smbFile = new SmbFile(finalTargetPath, ctx);
+                        android.util.Log.i("SMB_NAMES", "target=" + finalTargetPath);
                         SmbFile[] files = smbFile.listFiles();
                         List<DriveFolderFile> items = new ArrayList<>();
                         if (files != null) {
                             for (SmbFile file : files) {
-                                String name = file.getName();
-                                if (name == null) continue;
-                                if (name.endsWith("/")) name = name.substring(0, name.length() - 1);
-                                int lastSlash = name.lastIndexOf("/");
-                                if (lastSlash >= 0) name = name.substring(lastSlash + 1);
-                                int extIndex = name.lastIndexOf(".");
+                                String rawName = file.getName();
+                                String origName = rawName;
+                                if (rawName == null) continue;
+                                if (rawName.endsWith("/")) rawName = rawName.substring(0, rawName.length() - 1);
+                                int lastSlash = rawName.lastIndexOf("/");
+                                if (lastSlash >= 0) rawName = rawName.substring(lastSlash + 1);
+                                int extIndex = rawName.lastIndexOf(".");
                                 boolean isDir = file.isDirectory();
+                                android.util.Log.i("SMB_NAMES", "  orig='" + origName + "' -> name='" + rawName + "' isDir=" + isDir);
                                 items.add(new DriveFolderFile(
-                                        currentDriveNote, name, file.length(), !isDir,
-                                        !isDir && extIndex >= 0 ? name.substring(extIndex + 1) : null,
+                                        currentDriveNote, rawName, file.length(), !isDir,
+                                        !isDir && extIndex >= 0 ? rawName.substring(extIndex + 1) : null,
                                         file.lastModified()
                                 ));
                             }
