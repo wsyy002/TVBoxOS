@@ -78,6 +78,16 @@ public class ExoPlayer extends Media3ExoPlayer {
                         if (type == C.TRACK_TYPE_AUDIO) {
                             data.addAudio(bean);
                         } else {
+                            // 字幕轨道: 添加格式信息到名称
+                            String formatInfo = "";
+                            if (fmt.sampleMimeType != null) {
+                                String mime = fmt.sampleMimeType;
+                                int slash = mime.lastIndexOf('/');
+                                if (slash >= 0) formatInfo = mime.substring(slash + 1).toUpperCase();
+                            }
+                            if (!formatInfo.isEmpty()) {
+                                bean.name = (bean.language.isEmpty() ? "未知" : bean.language) + " (" + formatInfo + ")";
+                            }
                             data.addSubtitle(bean);
                         }
                     }

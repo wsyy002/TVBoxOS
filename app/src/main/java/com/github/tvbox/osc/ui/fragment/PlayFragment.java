@@ -487,7 +487,8 @@ public class PlayFragment extends BaseLazyFragment {
 
             @Override
             public String getDisplay(TrackInfoBean val) {
-                return val.index + " : " + val.language;
+                String display = val.name != null && !val.name.isEmpty() ? val.name : val.language;
+                return (val.index + 1) + " : " + display;
             }
         }, new DiffUtil.ItemCallback<TrackInfoBean>() {
             @Override
@@ -499,8 +500,23 @@ public class PlayFragment extends BaseLazyFragment {
             public boolean areContentsTheSame(@NonNull @NotNull TrackInfoBean oldItem, @NonNull @NotNull TrackInfoBean newItem) {
                 return oldItem.index == newItem.index;
             }
-        }, bean, trackInfo.getSubtitleSelected(false));
+        }, bean, getDefaultSubtitleIndex(bean));
         dialog.show();
+    }
+
+    private int getDefaultSubtitleIndex(java.util.List<com.github.tvbox.osc.player.TrackInfoBean> bean) {
+        if (bean == null || bean.isEmpty()) return 0;
+        for (int i = 0; i < bean.size(); i++) {
+            if (bean.get(i).selected) return i;
+        }
+        for (int i = 0; i < bean.size(); i++) {
+            String lang = bean.get(i).language != null ? bean.get(i).language.toLowerCase() : "";
+            String name = bean.get(i).name != null ? bean.get(i).name.toLowerCase() : "";
+            if (lang.contains("zh") || lang.contains("chi") || name.contains("中文") || name.contains("国语")) {
+                return i;
+            }
+        }
+        return 0;
     }
 
     void setTip(String msg, boolean loading, boolean err) {
