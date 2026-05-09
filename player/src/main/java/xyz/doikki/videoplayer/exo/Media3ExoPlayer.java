@@ -565,6 +565,7 @@ public class Media3ExoPlayer extends AbstractPlayer implements Player.Listener {
         if (mExoSubtitleListener != null) {
             mExoSubtitleListener.onSubtitleText(subtitleText);
         }
+    }
 
     /**
      * 检查当前播放媒体是否包含字幕轨道
