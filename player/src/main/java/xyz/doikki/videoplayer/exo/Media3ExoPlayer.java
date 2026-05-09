@@ -144,8 +144,10 @@ public class Media3ExoPlayer extends AbstractPlayer implements Player.Listener {
             mediaItem = buildMediaItem(path, headers);
         }
 
-        // 根据协议创建 MediaSource
-        if (path.toLowerCase().contains(".m3u8")) {
+        // 使用 DefaultMediaSourceFactory 自动检测格式(HLS/DASH/Progressive)
+        // 兼容 CSP 来源的无后缀名 URL
+        if (path.toLowerCase().contains(".m3u8") || path.toLowerCase().contains("m3u8")) {
+            // 已知HLS: 手动创建 HlsMediaSource 以支持跳转和Header
             mMediaSource = new HlsMediaSource.Factory(
                     new DefaultHttpDataSource.Factory()
                             .setAllowCrossProtocolRedirects(true)
@@ -155,9 +157,8 @@ public class Media3ExoPlayer extends AbstractPlayer implements Player.Listener {
                     new RtmpDataSource.Factory()
             ).createMediaSource(mediaItem);
         } else {
-            mMediaSource = new ProgressiveMediaSource.Factory(
-                    new DefaultDataSource.Factory(mAppContext)
-            ).createMediaSource(mediaItem);
+            // DefaultMediaSourceFactory 自动识别 m3u8/mpd/ts/mp4
+            mMediaSource = mMediaSourceFactory.createMediaSource(mediaItem);
         }
     }
 
