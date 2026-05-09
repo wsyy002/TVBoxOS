@@ -633,14 +633,11 @@ public class PlayFragment extends BaseLazyFragment {
             exoPlayer.loadDefaultTrack(progressKey);
             //Exo内置字幕监听
             exoPlayer.setExoSubtitleListener(text -> {
-                if (!mController.mSubtitleView.hasInternal) {
-                    mController.mSubtitleView.hasInternal = true;
-                }
-                if (mController.mSubtitleView.isInternal) {
-                    com.github.tvbox.osc.subtitle.model.Subtitle subtitle = new com.github.tvbox.osc.subtitle.model.Subtitle();
-                    subtitle.content = text;
-                    mController.mSubtitleView.onSubtitleChanged(subtitle);
-                }
+                mController.mSubtitleView.hasInternal = true;
+                mController.mSubtitleView.isInternal = true;
+                // 直接设置文本并显示(绕过SubtitleEngine)
+                mController.mSubtitleView.setText(text);
+                mController.mSubtitleView.setVisibility(android.view.View.VISIBLE);
             });
         }
         mController.mSubtitleView.bindToMediaPlayer(mVideoView.getMediaPlayer());
