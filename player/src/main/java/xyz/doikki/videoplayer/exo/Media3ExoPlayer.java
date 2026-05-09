@@ -480,37 +480,7 @@ public class Media3ExoPlayer extends AbstractPlayer implements Player.Listener {
         // 轨道变化回调
     }
 
-    @Override
-    public void onCues(@NonNull java.util.List<?> cues) {
-        if (cues == null || cues.isEmpty()) return;
-        // 提取字幕文本 (Media3 Cue.text)
-        StringBuilder sb = new StringBuilder();
-        for (Object cueObj : cues) {
-            try {
-                java.lang.reflect.Field textField = cueObj.getClass().getField("text");
-                Object textVal = textField.get(cueObj);
-                if (textVal != null && textVal instanceof CharSequence) {
-                    String text = textVal.toString();
-                    if (!text.isEmpty()) {
-                        if (sb.length() > 0) sb.append("\n");
-                        sb.append(text);
-                    }
-                }
-            } catch (Exception ignored) {}
-        }
-        final String subtitleText = sb.toString();
-        if (subtitleText.equals(mLastSubtitleText)) return;
-        mLastSubtitleText = subtitleText;
 
-        // 更新到字幕视图
-        if (mSubtitleOutput != null) {
-            final android.widget.TextView output = mSubtitleOutput;
-            output.post(() -> {
-                output.setText(subtitleText);
-                output.setVisibility(android.view.View.VISIBLE);
-            });
-        }
-    }
 
     public void setSubtitleOutput(android.widget.TextView textView) {
         mSubtitleOutput = textView;
