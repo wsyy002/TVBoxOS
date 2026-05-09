@@ -579,6 +579,91 @@ public class PlayActivity extends BaseActivity {
         });
     }
 
+
+    /**
+     * IJK播放器HLS WebVTT字幕: 从m3u8 manifest解析字幕URL并加载为外挂字幕
+     */
+    private void tryLoadHlsWebVttSubtitles() {
+        if (webPlayUrl == null) return;
+        new Thread(() -> {
+            try {
+                // 下载m3u8 manifest
+                okhttp3.OkHttpClient client = new okhttp3.OkHttpClient.Builder()
+                        .connectTimeout(5, java.util.concurrent.TimeUnit.SECONDS)
+                        .readTimeout(5, java.util.concurrent.TimeUnit.SECONDS)
+                        .build();
+                okhttp3.Request req = new okhttp3.Request.Builder()
+                        .url(webPlayUrl)
+                        .header("User-Agent", "Mozilla/5.0")
+                        .build();
+                okhttp3.Response resp = client.newCall(req).execute();
+                if (!resp.isSuccessful()) return;
+                String manifest = resp.body() != null ? resp.body().string() : "";
+                if (manifest.isEmpty()) return;
+
+                // 查找EXT-X-MEDIA:TYPE=SUBTITLES
+                // 格式: #EXT-X-MEDIA:TYPE=SUBTITLES,GROUP-ID="subs",NAME="中文",LANGUAGE="zh",URI="subtitles.m3u8"
+                java.util.regex.Pattern subPattern = java.util.regex.Pattern.compile(
+                        "TYPE=SUBTITLES[\\s\\S]*?URI=\"([^\"]+)\"",
+                        java.util.regex.Pattern.CASE_INSENSITIVE);
+                java.util.regex.Matcher matcher = subPattern.matcher(manifest);
+                if (!matcher.find()) {
+                    // 尝试直接查找VTT文件引用
+                    java.util.regex.Pattern vttPattern = java.util.regex.Pattern.compile(
+                            "https?://[^\\s\"]+\\.vtt[^\\s\"]*",
+                            java.util.regex.Pattern.CASE_INSENSITIVE);
+                    matcher = vttPattern.matcher(manifest);
+                    if (!matcher.find()) return;
+                }
+
+                String vttUrl = matcher.group(1);
+                if (vttUrl == null || vttUrl.isEmpty()) return;
+                
+                // 相对URL转绝对URL
+                if (!vttUrl.startsWith("http")) {
+                    android.net.Uri baseUri = android.net.Uri.parse(webPlayUrl);
+                    vttUrl = baseUri.buildUpon().appendEncodedPath(vttUrl).build().toString();
+                }
+                // 如果是子m3u8(字幕的m3u8), 再解析一次找到实际的vtt
+                if (vttUrl.contains(".m3u8")) {
+                    okhttp3.Request subReq = new okhttp3.Request.Builder()
+                            .url(vttUrl)
+                            .header("User-Agent", "Mozilla/5.0")
+                            .build();
+                    okhttp3.Response subResp = client.newCall(subReq).execute();
+                    if (subResp.isSuccessful()) {
+                        String subManifest = subResp.body() != null ? subResp.body().string() : "";
+                        if (!subManifest.isEmpty()) {
+                            for (String line : subManifest.split("\n")) {
+                                if (!line.startsWith("#") && line.contains(".vtt")) {
+                                    if (line.startsWith("http")) {
+                                        vttUrl = line;
+                                    } else {
+                                        vttUrl = android.net.Uri.parse(webPlayUrl)
+                                                .buildUpon().appendEncodedPath(line).build().toString();
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                final String finalVttUrl = vttUrl;
+                android.util.Log.i("WEBVTT", "Found subtitle: " + finalVttUrl);
+
+                // 在主线程加载字幕
+                runOnUiThread(() -> {
+                    mController.mSubtitleView.setSubtitlePath(finalVttUrl);
+                    mController.mSubtitleView.isInternal = false;
+                    mController.mSubtitleView.setVisibility(android.view.View.VISIBLE);
+                });
+            } catch (Exception e) {
+                android.util.Log.w("WEBVTT", "Failed to load HLS subtitles: " + e.getMessage());
+            }
+        }).start();
+    }
+
     private void initSubtitleView() {
         TrackInfo trackInfo = null;
         if (mVideoView.getMediaPlayer() instanceof IjkMediaPlayer) {
@@ -615,6 +700,10 @@ public class PlayActivity extends BaseActivity {
                     mController.mSubtitleView.onSubtitleChanged(subtitle);
                 }
             });
+        }
+        // IJK播放器: 如果是HLS流则尝试从m3u8解析WebVTT字幕
+        if(mVideoView.getMediaPlayer() instanceof IjkMediaPlayer && webPlayUrl != null && webPlayUrl.contains(".m3u8")){
+            tryLoadHlsWebVttSubtitles();
         }
         mController.mSubtitleView.bindToMediaPlayer(mVideoView.getMediaPlayer());
         mController.mSubtitleView.setPlaySubtitleCacheKey(subtitleCacheKey);
