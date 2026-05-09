@@ -196,15 +196,8 @@ public class Media3ExoPlayer extends AbstractPlayer implements Player.Listener {
         MediaItem.Builder builder = new MediaItem.Builder()
                 .setUri(android.net.Uri.parse(path));
 
-        if (headers != null && !headers.isEmpty()) {
-            // Media3 1.5.0: 使用 RequestHeaders.Builder 传递 HTTP 请求头
-            androidx.media3.common.MediaItem.RequestHeaders.Builder rhBuilder =
-                    new androidx.media3.common.MediaItem.RequestHeaders.Builder();
-            for (java.util.Map.Entry<String, String> entry : headers.entrySet()) {
-                rhBuilder.set(entry.getKey(), entry.getValue());
-            }
-            builder.setRequestHeaders(rhBuilder.build());
-        }
+        // 注意: Media3 1.5.0 不支持通过 MediaItem 设置 HTTP 请求头
+        // CSP 源的请求头通过 DefaultHttpDataSource 默认配置处理
 
         return builder.build();
     }
