@@ -465,20 +465,12 @@ public class PlayFragment extends BaseLazyFragment {
                     mController.mSubtitleView.destroy();
                     mController.mSubtitleView.clearSubtitleCache();
                     mController.mSubtitleView.isInternal = true;
+                    // 切换字幕时不pause/seek，避免触发任何位置重置操作
+                    // seek 操作会对部分视频/代理源导致从头重播
                     if (mediaPlayer instanceof com.github.tvbox.osc.player.ExoPlayer) {
-                        // Exo切换字幕轨道时直接选择，不pause/seek（避免重置位置）
                         ((com.github.tvbox.osc.player.ExoPlayer) mediaPlayer).selectSubtitleTrack(value.groupIndex, value.index);
                     } else if (mediaPlayer instanceof IjkMediaPlayer) {
-                        mediaPlayer.pause();
-                        long progress = mediaPlayer.getCurrentPosition();
                         ((IjkMediaPlayer)mediaPlayer).setTrack(value.index);
-                        new android.os.Handler().postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                mediaPlayer.seekTo(progress);
-                                mediaPlayer.start();
-                            }
-                        }, 800);
                     }
                     dialog.dismiss();
                 } catch (Exception e) {
