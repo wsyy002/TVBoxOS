@@ -1,57 +1,65 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="100px"
-    android:background="@drawable/button_home_sort_focus"
-    android:orientation="horizontal"
-    android:paddingLeft="20px"
-    android:paddingRight="20px">
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="@dimen/vs_300"
+    android:layout_height="wrap_content"
+    android:layout_margin="@dimen/vs_5"
+    android:background="@drawable/shape_user_focus"
+    android:focusable="true"
+    android:padding="@dimen/vs_1">
 
-    <ImageView
-        android:id="@+id/ivIcon"
-        android:layout_width="60px"
-        android:layout_height="60px"
-        android:layout_centerVertical="true"
-        android:scaleType="fitCenter" />
-
-    <RelativeLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_centerVertical="true"
-        android:layout_marginStart="20px"
-        android:layout_toEndOf="@id/ivIcon"
-        android:layout_toStartOf="@id/delIcon">
+        android:background="@drawable/shape_thumb_bottom_name"
+        android:orientation="vertical"
+        android:padding="@dimen/vs_15">
+
+        <ImageView
+            android:id="@+id/ivIcon"
+            android:layout_width="@dimen/vs_60"
+            android:layout_height="@dimen/vs_60"
+            android:layout_gravity="center_horizontal"
+            android:scaleType="fitCenter"
+            android:src="@drawable/icon_folder" />
 
         <TextView
             android:id="@+id/tvName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/vs_10"
             android:ellipsize="end"
+            android:gravity="center"
             android:maxLines="1"
             android:textColor="@color/color_FFFFFF"
-            android:textSize="30px" />
+            android:textSize="@dimen/ts_22" />
 
         <TextView
             android:id="@+id/tvInfo"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/tvName"
-            android:layout_marginTop="5px"
             android:ellipsize="end"
+            android:gravity="center"
             android:maxLines="1"
             android:textColor="@color/color_999999"
-            android:textSize="22px" />
+            android:textSize="@dimen/ts_18"
+            android:visibility="gone" />
 
-    </RelativeLayout>
+    </LinearLayout>
 
-    <ImageView
-        android:id="@+id/delIcon"
-        android:layout_width="40px"
-        android:layout_height="40px"
-        android:layout_alignParentEnd="true"
-        android:layout_centerVertical="true"
-        android:scaleType="fitCenter"
-        android:src="@drawable/icon_delete"
-        android:visibility="gone" />
+    <FrameLayout
+        android:id="@+id/delFrameLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        android:background="@drawable/shape_user_delete"
+        android:visibility="gone">
 
-</RelativeLayout>
+        <ImageView
+            android:layout_width="@dimen/vs_60"
+            android:layout_height="@dimen/vs_60"
+            android:layout_gravity="center"
+            android:layout_marginBottom="@dimen/vs_10"
+            android:src="@drawable/icon_delete" />
+    </FrameLayout>
+
+</FrameLayout>

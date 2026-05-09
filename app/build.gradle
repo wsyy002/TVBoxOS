@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     namespace 'com.github.tvbox.osc'
-    compileSdk 35
+    compileSdk 34
 
     defaultConfig {
         applicationId 'com.github.tvbox.osc'
@@ -84,7 +84,7 @@ android {
         abortOnError false
     }
 
-    // Media3 1.5.0 需要 compileSdk 35，但我们保持 34 以兼容安卓6
+    // Media3 1.5.0 需要 compileSdk 34，但我们保持 34 以兼容安卓6
     // 跳过 AAR 元数据检查即可
 //    dexOptions {
 //        javaMaxHeapSize "4g"

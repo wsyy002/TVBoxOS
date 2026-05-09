@@ -194,4 +194,18 @@ public class RoomDataManger {
         }
         Hawk.put(KEY_DRIVES, new Gson().toJson(drives));
     }
+
+    public static void updateDriveConfig(int id, String name, int driveType, String configJson) {
+        List<StorageDrive> drives = getAllDrives();
+        for (int i = 0; i < drives.size(); i++) {
+            if (drives.get(i).id == id) {
+                StorageDrive d = drives.get(i);
+                d.name = name;
+                d.driveType = driveType;
+                d.configJson = configJson;
+                break;
+            }
+        }
+        Hawk.put(KEY_DRIVES, new Gson().toJson(drives));
+    }
 }

@@ -1,6 +1,7 @@
 package com.github.tvbox.osc.ui.adapter;
 
 import android.view.View;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -33,23 +34,20 @@ public class DriveAdapter extends BaseQuickAdapter<DriveFolderFile, BaseViewHold
         ImageView ivIcon = helper.getView(R.id.ivIcon);
         TextView tvName = helper.getView(R.id.tvName);
         TextView tvInfo = helper.getView(R.id.tvInfo);
-        View delIcon = helper.getView(R.id.delIcon);
+        FrameLayout delFrame = helper.getView(R.id.delFrameLayout);
 
-        // 返回按钮
         if (item.parentFolder == item || (item.name == null && item.parentFolder == null)) {
             ivIcon.setImageResource(R.drawable.ic_folder_back);
             tvName.setText("返回上一级");
-            tvInfo.setText("");
-            delIcon.setVisibility(View.GONE);
+            tvInfo.setVisibility(View.GONE);
+            delFrame.setVisibility(View.GONE);
             return;
         }
 
-        if (delMode) {
-            delIcon.setVisibility(View.VISIBLE);
-        } else {
-            delIcon.setVisibility(View.GONE);
-        }
+        // 删除模式
+        delFrame.setVisibility(delMode ? View.VISIBLE : View.GONE);
 
+        // 图标
         if (item.isFile) {
             if (StorageDriveType.isVideoType(item.fileType)) {
                 ivIcon.setImageResource(R.drawable.icon_video);
@@ -57,9 +55,10 @@ public class DriveAdapter extends BaseQuickAdapter<DriveFolderFile, BaseViewHold
                 ivIcon.setImageResource(R.drawable.icon_file);
             }
             tvInfo.setText(formatSize(item.size));
+            tvInfo.setVisibility(View.VISIBLE);
         } else {
             ivIcon.setImageResource(R.drawable.icon_folder);
-            tvInfo.setText("");
+            tvInfo.setVisibility(View.GONE);
         }
 
         tvName.setText(item.name != null ? item.name : "");
