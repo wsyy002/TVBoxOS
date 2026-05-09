@@ -628,8 +628,20 @@ public class PlayFragment extends BaseLazyFragment {
             });
         }
         if(mediaPlayer instanceof ExoPlayer){
+            ExoPlayer exoPlayer = (ExoPlayer) mediaPlayer;
             //加载上一次选中的
-            ((ExoPlayer) mediaPlayer).loadDefaultTrack(progressKey);
+            exoPlayer.loadDefaultTrack(progressKey);
+            //Exo内置字幕监听
+            exoPlayer.setExoSubtitleListener(text -> {
+                if (!mController.mSubtitleView.hasInternal) {
+                    mController.mSubtitleView.hasInternal = true;
+                }
+                if (mController.mSubtitleView.isInternal) {
+                    com.github.tvbox.osc.subtitle.model.Subtitle subtitle = new com.github.tvbox.osc.subtitle.model.Subtitle();
+                    subtitle.content = text;
+                    mController.mSubtitleView.onSubtitleChanged(subtitle);
+                }
+            });
         }
         mController.mSubtitleView.bindToMediaPlayer(mVideoView.getMediaPlayer());
         mController.mSubtitleView.setPlaySubtitleCacheKey(subtitleCacheKey);
