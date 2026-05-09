@@ -686,13 +686,6 @@ public class VodController extends BaseController {
                 hideBottom();
             }
         });
-            @Override
-            public void onClick(View view) {
-                FastClickCheckUtil.check(view);
-                current = !current;
-                hideBottom();
-            }
-        });
         mLandscapePortraitBtn.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
