@@ -579,6 +579,7 @@ public class DriveActivity extends BaseActivity {
         com.github.tvbox.osc.base.App.getInstance().setVodInfo(vodInfo);
 
         android.content.Intent intent = new Intent(this, PlayActivity.class);
+        intent.putExtra("sourceKey", "drive");
         startActivity(intent);
     }
 

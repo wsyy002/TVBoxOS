@@ -30,10 +30,19 @@ public class LivePlayerManager {
     }
 
     public void getDefaultLiveChannelPlayer(VideoView videoView) {
+        // 每次重新从 Hawk 读取最新的播放器设置（用户可能在设置中改过）
+        try {
+            defaultPlayerConfig.put("pl", Hawk.get(HawkConfig.LIVE_PLAY_TYPE, 1));
+            defaultPlayerConfig.put("ijk", Hawk.get(HawkConfig.IJK_CODEC, "硬解码"));
+            defaultPlayerConfig.put("pr", Hawk.get(HawkConfig.PLAY_RENDER, 0));
+            defaultPlayerConfig.put("sc", Hawk.get(HawkConfig.PLAY_SCALE, 0));
+        } catch (org.json.JSONException e) {
+            e.printStackTrace();
+        }
         PlayerHelper.updateCfg(videoView, defaultPlayerConfig);
         try {
             currentPlayerConfig = new JSONObject(defaultPlayerConfig.toString());
-        } catch (JSONException e) {
+        } catch (org.json.JSONException e) {
             e.printStackTrace();
         }
     }
