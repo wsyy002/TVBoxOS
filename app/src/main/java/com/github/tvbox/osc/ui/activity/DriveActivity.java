@@ -139,16 +139,7 @@ public class DriveActivity extends BaseActivity {
             }
         });
 
-        // 长按删除
-        mGridView.setOnItemLongClickListener((parent, itemView, position) -> {
-            if (!delMode && position < adapter.getData().size()) {
-                DriveFolderFile item = adapter.getItem(position);
-                if (item.getDriveData() != null && item.parentFolder == null) {
-                    // 根级别存储，支持删除
-                    showDeleteConfirm(item);
-                }
-            }
-        });
+        // TvRecyclerView 不支持长按监听，删除通过按钮切换 delMode 实现
     }
 
     private void initViewModel(DriveFolderFile item) {
