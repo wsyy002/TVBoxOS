@@ -692,11 +692,16 @@ public class PlayActivity extends BaseActivity {
             });
         }
         if(mVideoView.getMediaPlayer() instanceof ExoPlayer){
+            ExoPlayer exoPlayer = (ExoPlayer) mVideoView.getMediaPlayer();
             //加载上一次选中的
-            ((ExoPlayer) mVideoView.getMediaPlayer()).loadDefaultTrack(progressKey);
+            exoPlayer.loadDefaultTrack(progressKey);
+            //检查是否有字幕轨道
+            if (exoPlayer.hasSubtitleTracks()) {
+                mController.mSubtitleView.hasInternal = true;
+                android.util.Log.i("IJK_SUB", "Exo detected subtitle tracks");
+            }
             //Exo内置字幕: 通过动态代理监听 onCues
-            ((ExoPlayer) mVideoView.getMediaPlayer()).setExoSubtitleListener(text -> {
-                //首次收到字幕数据时标记为有内置字幕
+            exoPlayer.setExoSubtitleListener(text -> {
                 if (!mController.mSubtitleView.hasInternal) {
                     mController.mSubtitleView.hasInternal = true;
                 }
@@ -704,6 +709,7 @@ public class PlayActivity extends BaseActivity {
                     com.github.tvbox.osc.subtitle.model.Subtitle subtitle = new com.github.tvbox.osc.subtitle.model.Subtitle();
                     subtitle.content = text;
                     mController.mSubtitleView.onSubtitleChanged(subtitle);
+                    android.util.Log.i("IJK_SUB", "Exo subtitle displayed: " + text);
                 }
             });
         }

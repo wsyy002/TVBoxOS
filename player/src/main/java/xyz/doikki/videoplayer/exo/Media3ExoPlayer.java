@@ -567,3 +567,22 @@ public class Media3ExoPlayer extends AbstractPlayer implements Player.Listener {
         }
     }
 }
+
+    /**
+     * 检查当前播放媒体是否包含字幕轨道
+     */
+    public boolean hasSubtitleTracks() {
+        if (mExoPlayer == null) return false;
+        try {
+            androidx.media3.common.Tracks tracks = mExoPlayer.getCurrentTracks();
+            if (tracks == null) return false;
+            for (androidx.media3.common.Tracks.Group group : tracks.getGroups()) {
+                if (group.isTrackSupported() && group.getType() == C.TRACK_TYPE_TEXT) {
+                    return true;
+                }
+            }
+        } catch (Exception e) {
+            Log.w(TAG, "hasSubtitleTracks error: " + e.getMessage());
+        }
+        return false;
+    }
