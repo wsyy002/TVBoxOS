@@ -23,17 +23,16 @@
             <TextView
                 android:id="@+id/selectInternal"
                 android:layout_width="@dimen/vs_480"
-                android:layout_height="@dimen/vs_80"
+                android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:background="#FF0000"
+                android:background="@drawable/button_dialog_main"
                 android:focusable="true"
                 android:gravity="center"
                 android:padding="@dimen/vs_10"
-                android:text="▼ 内嵌字幕 ▼"
+                android:text="选择内置字幕"
                 android:visibility="visible"
-                android:textColor="@android:color/white"
-                android:textSize="@dimen/ts_24"
-                android:textStyle="bold" />
+                android:textColor="@color/color_FFFFFF"
+                android:textSize="@dimen/ts_20" />
 
             <TextView
                 android:id="@+id/selectLocal"
