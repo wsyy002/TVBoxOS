@@ -29,7 +29,7 @@
                 android:gravity="center"
                 android:padding="@dimen/vs_10"
                 android:text="选择内置字幕"
-                android:visibility="gone"
+                android:visibility="visible"
                 android:textColor="@color/color_FFFFFF"
                 android:textSize="@dimen/ts_20" />
 
