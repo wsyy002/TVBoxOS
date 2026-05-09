@@ -171,7 +171,6 @@ public class VodController extends BaseController {
     TextView mZimuBtn;
     TextView mAudioTrackBtn;
     public TextView mLandscapePortraitBtn;
-    public TextView mDanmakuSwitchBtn;
     private View backBtn;//返回键
     private boolean isClickBackBtn;
     TextView seekTime; //右上角进度时间显示
@@ -255,7 +254,6 @@ public class VodController extends BaseController {
         mZimuBtn = findViewById(R.id.zimu_select);
         mAudioTrackBtn = findViewById(R.id.audio_track_select);
         mLandscapePortraitBtn = findViewById(R.id.landscape_portrait);
-        mDanmakuSwitchBtn = findViewById(R.id.play_danmaku_switch);
         backBtn = findViewById(R.id.tv_back);
         seekTime = findViewById(R.id.tv_seek_time);
         mScreenDisplay = findViewById(R.id.screen_display);
@@ -688,14 +686,10 @@ public class VodController extends BaseController {
                 hideBottom();
             }
         });
-        mDanmakuSwitchBtn.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
                 FastClickCheckUtil.check(view);
-                boolean current = Hawk.get(HawkConfig.DANMAKU_SWITCH, false);
                 current = !current;
-                Hawk.put(HawkConfig.DANMAKU_SWITCH, current);
-                mDanmakuSwitchBtn.setText(current ? "弹幕开" : "弹幕关");
                 hideBottom();
             }
         });
@@ -806,9 +800,6 @@ public class VodController extends BaseController {
             mPlayerTimeStartBtn.setText(stringForTime(mPlayerConfig.getInt("st") * 1000));
             mPlayerTimeSkipBtn.setText(stringForTime(mPlayerConfig.getInt("et") * 1000));
             mAudioTrackBtn.setVisibility((playerType == 1 || playerType == 2) ? VISIBLE : GONE);
-            mDanmakuSwitchBtn.setVisibility((playerType == 1 || playerType == 2) ? VISIBLE : GONE);
-            boolean danmakuOn = Hawk.get(HawkConfig.DANMAKU_SWITCH, false);
-            mDanmakuSwitchBtn.setText(danmakuOn ? "弹幕开" : "弹幕关");
         } catch (JSONException e) {
             e.printStackTrace();
         }
