@@ -604,7 +604,6 @@ public class PlayActivity extends BaseActivity {
             //加载上一次选中的
             ((ExoPlayer) mVideoView.getMediaPlayer()).loadDefaultTrack(progressKey);
             //设置Exo内置字幕输出
-            ((ExoPlayer) mVideoView.getMediaPlayer()).setSubtitleOutput(mController.mSubtitleView);
         }
         mController.mSubtitleView.bindToMediaPlayer(mVideoView.getMediaPlayer());
         mController.mSubtitleView.setPlaySubtitleCacheKey(subtitleCacheKey);

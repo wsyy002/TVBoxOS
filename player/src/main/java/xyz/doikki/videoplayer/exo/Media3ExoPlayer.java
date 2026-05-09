@@ -75,8 +75,6 @@ public class Media3ExoPlayer extends AbstractPlayer implements Player.Listener {
     protected DefaultTrackSelector mTrackSelector;
 
     protected String currentPlayPath;
-    private android.widget.TextView mSubtitleOutput;
-    private String mLastSubtitleText = "";
 
     public Media3ExoPlayer(Context context) {
         mAppContext = context.getApplicationContext();
@@ -482,8 +480,5 @@ public class Media3ExoPlayer extends AbstractPlayer implements Player.Listener {
 
 
 
-    public void setSubtitleOutput(android.widget.TextView textView) {
-        mSubtitleOutput = textView;
-    }
 
 }
