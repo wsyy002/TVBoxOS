@@ -223,7 +223,8 @@ public class IjkMediaPlayer extends IjkPlayer {
                 // 如果需要，还可以检查轨道的描述或标题以获取更多信息
                 data.addAudio(a);
             }
-            else if (info.getTrackType() == ITrackInfo.MEDIA_TRACK_TYPE_TIMEDTEXT) {//内置字幕
+            else if (info.getTrackType() == ITrackInfo.MEDIA_TRACK_TYPE_TIMEDTEXT
+                    || info.getTrackType() == ITrackInfo.MEDIA_TRACK_TYPE_SUBTITLE) {//内置字幕(含MKV内嵌)
                 TrackInfoBean t = new TrackInfoBean();
                 t.name = info.getInfoInline();
                 t.language = info.getLanguage();

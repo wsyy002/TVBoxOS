@@ -585,6 +585,8 @@ public class PlayActivity extends BaseActivity {
      */
     private void tryLoadHlsWebVttSubtitles() {
         if (webPlayUrl == null) return;
+        final String checkUrl = webPlayUrl;
+        android.util.Log.i("WEBVTT", "Checking URL: " + checkUrl);
         new Thread(() -> {
             try {
                 // 下载m3u8 manifest
@@ -593,10 +595,11 @@ public class PlayActivity extends BaseActivity {
                         .readTimeout(5, java.util.concurrent.TimeUnit.SECONDS)
                         .build();
                 okhttp3.Request req = new okhttp3.Request.Builder()
-                        .url(webPlayUrl)
+                        .url(checkUrl)
                         .header("User-Agent", "Mozilla/5.0")
                         .build();
                 okhttp3.Response resp = client.newCall(req).execute();
+                android.util.Log.i("WEBVTT", "Response code: " + resp.code());
                 if (!resp.isSuccessful()) return;
                 String manifest = resp.body() != null ? resp.body().string() : "";
                 if (manifest.isEmpty()) return;
@@ -701,8 +704,8 @@ public class PlayActivity extends BaseActivity {
                 }
             });
         }
-        // IJK播放器: 如果是HLS流则尝试从m3u8解析WebVTT字幕
-        if(mVideoView.getMediaPlayer() instanceof IjkMediaPlayer && webPlayUrl != null && webPlayUrl.contains(".m3u8")){
+        // IJK播放器: 尝试从HLS流中解析WebVTT字幕(不限于.m3u8后缀)
+        if(mVideoView.getMediaPlayer() instanceof IjkMediaPlayer && webPlayUrl != null){
             tryLoadHlsWebVttSubtitles();
         }
         mController.mSubtitleView.bindToMediaPlayer(mVideoView.getMediaPlayer());
