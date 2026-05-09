@@ -1611,26 +1611,26 @@ public class PlayFragment extends BaseLazyFragment {
                     @Override
                     public void success() {
                         initWebView(false);
-                        loadUrl(url);
+                        if (mXwalkWebView != null) loadUrl(url);
                     }
 
                     @Override
                     public void fail() {
                         Toast.makeText(mContext, "XWalkView不兼容，已替换为系统自带WebView", Toast.LENGTH_SHORT).show();
                         initWebView(true);
-                        loadUrl(url);
+                        if (mSysWebView != null) loadUrl(url);
                     }
 
                     @Override
                     public void ignore() {
                         Toast.makeText(mContext, "XWalkView运行组件未下载，已替换为系统自带WebView", Toast.LENGTH_SHORT).show();
                         initWebView(true);
-                        loadUrl(url);
+                        if (mSysWebView != null) loadUrl(url);
                     }
                 });
             } else {
                 initWebView(true);
-                loadUrl(url);
+                if (mSysWebView != null) loadUrl(url);
             }
         } else {
             loadUrl(url);
@@ -1639,11 +1639,29 @@ public class PlayFragment extends BaseLazyFragment {
 
     void initWebView(boolean useSystemWebView) {
         if (useSystemWebView) {
-            mSysWebView = new MyWebView(mContext);
-            configWebViewSys(mSysWebView);
+            try {
+                mSysWebView = new MyWebView(mContext);
+                configWebViewSys(mSysWebView);
+            } catch (Throwable th) {
+                android.util.Log.e("WebViewInit", "Failed to init system WebView", th);
+                try {
+                    // 部分小米电视WebView可能缺失，尝试XWalk备选
+                    mXwalkWebView = new MyXWalkView(mContext);
+                    configWebViewX5(mXwalkWebView);
+                    useSystemWebView = false;
+                } catch (Throwable th2) {
+                    android.util.Log.e("WebViewInit", "Both WebView and XWalk failed", th2);
+                    Toast.makeText(mContext, "当前设备不支持网页解析，请切换播放器或源", Toast.LENGTH_LONG).show();
+                }
+            }
         } else {
-            mXwalkWebView = new MyXWalkView(mContext);
-            configWebViewX5(mXwalkWebView);
+            try {
+                mXwalkWebView = new MyXWalkView(mContext);
+                configWebViewX5(mXwalkWebView);
+            } catch (Throwable th) {
+                android.util.Log.e("WebViewInit", "Failed to init XWalk", th);
+                Toast.makeText(mContext, "当前设备不支持网页解析，请切换播放器或源", Toast.LENGTH_LONG).show();
+            }
         }
     }
 
