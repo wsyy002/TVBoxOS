@@ -493,26 +493,37 @@ public class DriveActivity extends BaseActivity {
         }
     }
 
+    // 从 configJson 中提取服务器 URL
+    private String getDriveUrl(StorageDrive drive) {
+        if (drive == null || drive.configJson == null || drive.configJson.isEmpty()) {
+            return drive != null ? drive.name : "";
+        }
+        try {
+            com.google.gson.JsonObject cfg = com.google.gson.JsonParser.parseString(drive.configJson).getAsJsonObject();
+            if (cfg.has("路径")) return cfg.get("路径").getAsString();
+            if (cfg.has("服务器地址")) return cfg.get("服务器地址").getAsString();
+            if (cfg.has("主机地址")) return cfg.get("主机地址").getAsString();
+        } catch (Exception ignored) {}
+        return drive.name;
+    }
+
     private void playFile(DriveFolderFile file) {
         String playUrl;
+        StorageDrive driveData = viewModel.getCurrentDrive() != null ? viewModel.getCurrentDrive().getDriveData() : null;
+        String driveUrl = getDriveUrl(driveData);
+        String pathSuffix = viewModel.getCurrentDriveNote().getAccessingPathStr()
+                + viewModel.getCurrentDriveNote().name + "/" + file.name;
+
         if (file.getDriveType() == StorageDriveType.TYPE.LOCAL) {
-            playUrl = viewModel.getCurrentDrive().name
-                    + viewModel.getCurrentDriveNote().getAccessingPathStr()
-                    + viewModel.getCurrentDriveNote().name + "/" + file.name;
+            playUrl = driveUrl + pathSuffix;
         } else if (file.getDriveType() == StorageDriveType.TYPE.WEBDAV) {
-            playUrl = viewModel.getCurrentDrive().getDriveData().configJson + "/"
-                    + viewModel.getCurrentDriveNote().getAccessingPathStr()
-                    + viewModel.getCurrentDriveNote().name + "/" + file.name;
+            playUrl = driveUrl + "/" + pathSuffix;
             playUrl = com.github.tvbox.osc.util.LocalProxyServer.getInstance().proxyUrl(playUrl);
         } else if (file.getDriveType() == StorageDriveType.TYPE.SMB) {
-            String smbUrl = viewModel.getCurrentDrive().name
-                    + viewModel.getCurrentDriveNote().getAccessingPathStr()
-                    + viewModel.getCurrentDriveNote().name + "/" + file.name;
+            String smbUrl = driveUrl + pathSuffix;
             playUrl = com.github.tvbox.osc.util.LocalProxyServer.getInstance().proxyUrl(smbUrl);
         } else if (file.getDriveType() == StorageDriveType.TYPE.FTP) {
-            String ftpUrl = "ftp://" + viewModel.getCurrentDrive().getDriveData().name + "/"
-                    + viewModel.getCurrentDriveNote().getAccessingPathStr()
-                    + viewModel.getCurrentDriveNote().name + "/" + file.name;
+            String ftpUrl = "ftp://" + driveUrl + "/" + pathSuffix;
             playUrl = com.github.tvbox.osc.util.LocalProxyServer.getInstance().proxyUrl(ftpUrl);
         } else {
             playUrl = file.name;

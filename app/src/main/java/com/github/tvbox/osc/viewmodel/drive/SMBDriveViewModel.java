@@ -25,15 +25,22 @@ public class SMBDriveViewModel extends AbstractDriveViewModel {
         try {
             JsonObject config = parseConfig(currentDrive.getDriveData().configJson);
             // 中文标签 "服务器地址" 优先，其次 "主机地址"
+            String url = null;
             if (config.has("服务器地址")) {
-                return config.get("服务器地址").getAsString();
+                url = config.get("服务器地址").getAsString();
+            } else if (config.has("主机地址")) {
+                url = "smb://" + config.get("主机地址").getAsString();
             }
-            if (config.has("主机地址")) {
-                return "smb://" + config.get("主机地址").getAsString();
+            if (url != null) {
+                // jcifs 需要服务器地址以 / 结尾
+                if (!url.endsWith("/")) url += "/";
+                return url;
             }
         } catch (Exception ignored) {}
         // 回退：旧数据直接把 URL 存在 name 里
-        return currentDrive.getDriveData().name;
+        String fallback = currentDrive.getDriveData().name;
+        if (!fallback.endsWith("/")) fallback += "/";
+        return fallback;
     }
 
     private CIFSContext getSmbContext() {
@@ -41,14 +48,21 @@ public class SMBDriveViewModel extends AbstractDriveViewModel {
         try {
             JsonObject config = parseConfig(currentDrive.getDriveData().configJson);
 
-            String username = config.has("username") ? config.get("username").getAsString() : "";
-            String password = config.has("password") ? config.get("password").getAsString() : "";
+            // 兼容中文和英文 key 名
+            String username = "";
+            if (config.has("用户名")) username = config.get("用户名").getAsString();
+            else if (config.has("username")) username = config.get("username").getAsString();
+
+            String password = "";
+            if (config.has("密码")) password = config.get("密码").getAsString();
+            else if (config.has("password")) password = config.get("password").getAsString();
+
+            String domain = "WORKGROUP";
+            if (config.has("域")) domain = config.get("域").getAsString();
+            else if (config.has("domain")) domain = config.get("domain").getAsString();
 
             CIFSContext baseCtx = SingletonContext.getInstance();
             if (!username.isEmpty()) {
-                // jcifs-ng: NtlmPasswordAuthentication is the concrete Credentials implementation
-                String domain = config.has("domain") ? config.get("domain").getAsString() : "";
-                // jcifs-ng 2.1.7: NtlmPasswordAuthentication(CIFSContext, String domain, String username, String password)
                 smbContext = baseCtx.withCredentials(new jcifs.smb.NtlmPasswordAuthentication(
                         baseCtx, domain, username, password
                 ));
