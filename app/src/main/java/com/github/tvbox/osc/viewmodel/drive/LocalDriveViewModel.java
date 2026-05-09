@@ -11,13 +11,33 @@ import java.util.List;
  */
 public class LocalDriveViewModel extends AbstractDriveViewModel {
 
+    /**
+     * 从 configJson 或 name 中提取本地目录根路径
+     */
+    private String getLocalRootPath() {
+        try {
+            String configJson = currentDrive.getDriveData().configJson;
+            if (configJson != null && !configJson.isEmpty()) {
+                com.google.gson.JsonObject cfg = com.google.gson.JsonParser.parseString(configJson).getAsJsonObject();
+                if (cfg.has("路径")) {
+                    String p = cfg.get("路径").getAsString();
+                    if (p != null && !p.isEmpty()) return p;
+                }
+            }
+        } catch (Exception ignored) {}
+        // 回退：旧数据直接把路径存在 name 里
+        return currentDrive.getDriveData().name;
+    }
+
     @Override
     public String loadData(LoadDataCallback callback) {
         if (currentDriveNote == null) {
             currentDriveNote = new DriveFolderFile(null, "", 0, false, null, null);
         }
 
-        String path = currentDrive.name + currentDriveNote.getAccessingPathStr() + (currentDriveNote.name != null ? currentDriveNote.name : "");
+        // 从 configJson 提取路径，如果没有则回退到 drive.name
+        String rootPath = getLocalRootPath();
+        String path = rootPath + currentDriveNote.getAccessingPathStr() + (currentDriveNote.name != null ? currentDriveNote.name : "");
 
         if (currentDriveNote.getChildren() == null) {
             File[] files = (new File(path)).listFiles();

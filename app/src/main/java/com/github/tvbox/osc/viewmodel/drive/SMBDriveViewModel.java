@@ -17,6 +17,25 @@ public class SMBDriveViewModel extends AbstractDriveViewModel {
 
     private CIFSContext smbContext;
 
+    /**
+     * 从 configJson 中提取 SMB 服务器地址
+     * 兼容旧数据：如果 configJson 为空则回退到 drive.name
+     */
+    private String getSmbBaseUrl() {
+        try {
+            JsonObject config = parseConfig(currentDrive.getDriveData().configJson);
+            // 中文标签 "服务器地址" 优先，其次 "主机地址"
+            if (config.has("服务器地址")) {
+                return config.get("服务器地址").getAsString();
+            }
+            if (config.has("主机地址")) {
+                return "smb://" + config.get("主机地址").getAsString();
+            }
+        } catch (Exception ignored) {}
+        // 回退：旧数据直接把 URL 存在 name 里
+        return currentDrive.getDriveData().name;
+    }
+
     private CIFSContext getSmbContext() {
         if (smbContext != null) return smbContext;
         try {
@@ -50,7 +69,8 @@ public class SMBDriveViewModel extends AbstractDriveViewModel {
 
     @Override
     public String loadData(LoadDataCallback callback) {
-        String baseUrl = currentDrive.getDriveData().name;
+        // 从 configJson 提取服务器地址，而不是用 display name
+        String baseUrl = getSmbBaseUrl();
         if (currentDriveNote == null) {
             currentDriveNote = new DriveFolderFile(null, "", 0, false, null, null);
         }
