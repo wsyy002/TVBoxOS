@@ -202,3 +202,33 @@ public class ExoPlayer extends Media3ExoPlayer {
         return String.join(", ", channelLabel, codec);
     }
 }
+    /**
+     * 选择字幕轨道（通过Media3的TrackSelector）
+     */
+    public void selectSubtitleTrack(int groupIndex, int trackIndex) {
+        try {
+            androidx.media3.exoplayer.trackselection.MappingTrackSelector.MappedTrackInfo mappedInfo = mTrackSelector.getCurrentMappedTrackInfo();
+            if (mappedInfo == null) return;
+
+            int textRendererIndex = -1;
+            for (int i = 0; i < mappedInfo.getRendererCount(); i++) {
+                if (mappedInfo.getRendererType(i) == C.TRACK_TYPE_TEXT) {
+                    textRendererIndex = i;
+                    break;
+                }
+            }
+            if (textRendererIndex < 0) return;
+
+            androidx.media3.exoplayer.source.TrackGroupArray textGroups = mappedInfo.getTrackGroups(textRendererIndex);
+            if (groupIndex < 0 || groupIndex >= textGroups.length) return;
+            if (trackIndex < 0 || trackIndex >= textGroups.get(groupIndex).length) return;
+
+            DefaultTrackSelector.SelectionOverride override = new DefaultTrackSelector.SelectionOverride(groupIndex, trackIndex);
+            DefaultTrackSelector.Parameters.Builder builder = mTrackSelector.getParameters().buildUpon();
+            builder.clearSelectionOverrides(textRendererIndex);
+            builder.setSelectionOverride(textRendererIndex, textGroups, override);
+            mTrackSelector.setParameters(builder.build());
+        } catch (Exception e) {
+            LOG.i("selectSubtitleTrack error: " + e.getMessage());
+        }
+    }

@@ -434,16 +434,22 @@ public class PlayFragment extends BaseLazyFragment {
 
     void selectMyInternalSubtitle() {
         AbstractPlayer mediaPlayer = mVideoView.getMediaPlayer();
-        if (!(mediaPlayer instanceof IjkMediaPlayer)) {
-            return;
+        // 获取字幕轨道信息
+        com.github.tvbox.osc.player.TrackInfo trackInfo = null;
+        com.github.tvbox.osc.player.ExoPlayer exoPlayer = null;
+
+        if (mediaPlayer instanceof IjkMediaPlayer) {
+            trackInfo = ((IjkMediaPlayer)mediaPlayer).getTrackInfo();
+        } else if (mediaPlayer instanceof com.github.tvbox.osc.player.ExoPlayer) {
+            exoPlayer = (com.github.tvbox.osc.player.ExoPlayer) mediaPlayer;
+            trackInfo = exoPlayer.getTrackInfo();
         }
-        TrackInfo trackInfo = null;
-        trackInfo = ((IjkMediaPlayer)mediaPlayer).getTrackInfo();
+
         if (trackInfo == null) {
             Toast.makeText(mContext, "没有内置字幕", Toast.LENGTH_SHORT).show();
             return;
         }
-        List<TrackInfoBean> bean = trackInfo.getSubtitle();
+        java.util.List<TrackInfoBean> bean = trackInfo.getSubtitle();
         if (bean.size() < 1) return;
         SelectDialog<TrackInfoBean> dialog = new SelectDialog<>(getActivity());
         dialog.setTip("切换内置字幕");
@@ -455,12 +461,18 @@ public class PlayFragment extends BaseLazyFragment {
                         subtitle.selected = subtitle.index == value.index;
                     }
                     mediaPlayer.pause();
-                    long progress = mediaPlayer.getCurrentPosition();//保存当前进度，ijk 切换轨道 会有快进几秒
+                    long progress = mediaPlayer.getCurrentPosition();
                     mController.mSubtitleView.destroy();
                     mController.mSubtitleView.clearSubtitleCache();
                     mController.mSubtitleView.isInternal = true;
-                    ((IjkMediaPlayer)mediaPlayer).setTrack(value.index);
-                    new Handler().postDelayed(new Runnable() {
+                    if (exoPlayer != null && mediaPlayer instanceof com.github.tvbox.osc.player.ExoPlayer) {
+                        // ExoPlayer: 通过getTrackInfo找到字幕轨道索引并选中
+                        com.github.tvbox.osc.player.ExoPlayer ep = (com.github.tvbox.osc.player.ExoPlayer) mediaPlayer;
+                        ep.selectSubtitleTrack(value.groupIndex, value.index);
+                    } else if (mediaPlayer instanceof IjkMediaPlayer) {
+                        ((IjkMediaPlayer)mediaPlayer).setTrack(value.index);
+                    }
+                    new android.os.Handler().postDelayed(new Runnable() {
                         @Override
                         public void run() {
                             mediaPlayer.seekTo(progress);
@@ -469,7 +481,7 @@ public class PlayFragment extends BaseLazyFragment {
                     }, 800);
                     dialog.dismiss();
                 } catch (Exception e) {
-                    LOG.e("切换内置字幕出错");
+                    LOG.e("切换内置字幕出错: " + e.getMessage());
                 }
             }
 
