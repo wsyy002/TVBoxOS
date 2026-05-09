@@ -332,15 +332,29 @@ public class DriveActivity extends BaseActivity {
     }
 
     private void addLocalDrive() {
-        // 用TVBox风格的SelectDialog让用户选常用路径
-        String[] commonPaths = new String[]{
-                "/storage/emulated/0/",
-                "/storage/emulated/0/Download/",
-                "/storage/emulated/0/Movies/",
-                "/storage/emulated/0/DCIM/",
-                "/storage/emulated/0/Android/data/",
-                "自定义路径..."
-        };
+        // 扫描 /storage/ 下所有挂载点（包含U盘等外置存储）
+        java.util.ArrayList<String> paths = new java.util.ArrayList<>();
+        paths.add("/storage/emulated/0/");
+        paths.add("/storage/emulated/0/Download/");
+        paths.add("/storage/emulated/0/Movies/");
+        paths.add("/storage/emulated/0/DCIM/");
+        // 扫描外置U盘/存储卡
+        try {
+            java.io.File storage = new java.io.File("/storage/");
+            java.io.File[] mounts = storage.listFiles();
+            if (mounts != null) {
+                for (java.io.File m : mounts) {
+                    String name = m.getName();
+                    // 排除内部存储和已知系统目录
+                    if (name.equals("emulated") || name.equals("self") || name.startsWith(".")) continue;
+                    if (m.isDirectory()) {
+                        paths.add(m.getAbsolutePath() + "/");
+                    }
+                }
+            }
+        } catch (Exception ignored) {}
+        paths.add("自定义路径...");
+        final String[] commonPaths = paths.toArray(new String[0]);
 
         SelectDialog<String> dialog = new SelectDialog<>(this);
         dialog.setTip("选择本地目录");
