@@ -278,6 +278,10 @@ public class PlayFragment extends BaseLazyFragment {
             @Override
             public void setAllowSwitchPlayer(boolean isAllow){allowSwitchPlayer=isAllow;}
         });
+                        // 延迟确保initSubtitleView被调用
+                        new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+                            initSubtitleView();
+                        }, 500);
         mVideoView.setVideoController(mController);
     }
 
