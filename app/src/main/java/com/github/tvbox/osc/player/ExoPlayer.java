@@ -254,15 +254,27 @@ public class ExoPlayer extends Media3ExoPlayer {
             mExoPlayer.addListener(new androidx.media3.common.Player.Listener() {
                 @Override
                 public void onCues(@NonNull java.util.List<Cue> cues) {
-                    if (cues == null || cues.isEmpty()) return;
+                    if (cues == null || cues.isEmpty()) {
+                        android.util.Log.d("SubCue", "onCues: null/empty");
+                        return;
+                    }
                     StringBuilder sb = new StringBuilder();
                     for (Cue cue : cues) {
-                        if (cue.text != null && cue.text.length() > 0) {
+                        CharSequence textContent = cue.text;
+                        if (textContent == null || textContent.length() == 0) {
+                            try {
+                                java.lang.reflect.Method m = cue.getClass().getMethod("getText");
+                                Object r = m.invoke(cue);
+                                if (r instanceof CharSequence) textContent = (CharSequence) r;
+                            } catch (Exception ignored) {}
+                        }
+                        if (textContent != null && textContent.length() > 0) {
                             if (sb.length() > 0) sb.append("\n");
-                            sb.append(cue.text);
+                            sb.append(textContent);
                         }
                     }
                     final String text = sb.toString();
+                    android.util.Log.d("SubCue", "onCues: text='" + text + "' listener=" + (mExoSubtitleListener != null));
                     if (!text.isEmpty() && mExoSubtitleListener != null) {
                         mExoSubtitleListener.onSubtitleText(text);
                     }

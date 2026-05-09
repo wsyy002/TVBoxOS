@@ -95,11 +95,12 @@ public class SelectDialogAdapter<T> extends ListAdapter<T, SelectDialogAdapter.S
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (position == select)
-                    return;
-                notifyItemChanged(select);
+                int oldSelect = select;
                 select = position;
-                notifyItemChanged(select);
+                if (oldSelect != select) {
+                    notifyItemChanged(oldSelect);
+                    notifyItemChanged(select);
+                }
                 dialogInterface.click(value, position);
             }
         });

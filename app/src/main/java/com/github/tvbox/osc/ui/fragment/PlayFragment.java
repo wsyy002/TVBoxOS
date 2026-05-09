@@ -729,6 +729,11 @@ public class PlayFragment extends BaseLazyFragment {
                     }
                 }
             });
+
+            // 延迟再试一次（适用于初始轨道加载较慢的情况，如部分HLS/流媒体）
+            new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+                trySelectExoSubtitleTrack(exoPlayer);
+            }, 2000);
         }
         mController.mSubtitleView.bindToMediaPlayer(mVideoView.getMediaPlayer());
         mController.mSubtitleView.setPlaySubtitleCacheKey(subtitleCacheKey);

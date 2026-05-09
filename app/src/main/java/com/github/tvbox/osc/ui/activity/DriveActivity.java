@@ -220,7 +220,7 @@ public class DriveActivity extends BaseActivity {
      * 根级别存储操作菜单：浏览 / 编辑 / 删除
      */
     private void showDriveActionMenu(DriveFolderFile item) {
-        String[] actions = new String[]{"📂 浏览", "✏️ 编辑", "🗑️ 删除"};
+        String[] actions = new String[]{"浏览文件", "编辑配置", "删除"};
         SelectDialog<String> dialog = new SelectDialog<>(this);
         dialog.setTip(item.name);
         dialog.setAdapter(new SelectDialogAdapter.SelectDialogInterface<String>() {

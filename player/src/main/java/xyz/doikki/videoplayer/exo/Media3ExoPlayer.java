@@ -143,7 +143,7 @@ public class Media3ExoPlayer extends AbstractPlayer implements Player.Listener {
         }
 
         mExoPlayer.addListener(this);
-        setupSubtitleListener();
+        // setupSubtitleListener() 已废弃——改用 ExoPlayer.initSubtitleCueListener()
     }
 
     @Override
