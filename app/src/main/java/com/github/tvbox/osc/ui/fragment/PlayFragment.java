@@ -709,44 +709,49 @@ public class PlayFragment extends BaseLazyFragment {
             });
             // PGS图形字幕监听（含位置/大小参数）
             exoPlayer.setExoBitmapSubtitleListener((bmp, line, position, size) -> {
-                if (mController.mSubtitleBitmapView == null) return;
-                mController.mSubtitleView.hasInternal = true;
-                mController.mSubtitleView.isInternal = true;
-                if (bmp == null) {
-                    mController.mSubtitleBitmapView.setVisibility(android.view.View.GONE);
-                } else {
-                    mController.mSubtitleView.setVisibility(android.view.View.GONE);
-                    mController.mSubtitleView.setText("");
-                    mController.mSubtitleBitmapView.setImageBitmap(bmp);
-                    // 根据 Cue 的定位参数调整 ImageView 位置
-                    android.view.ViewGroup.MarginLayoutParams lp =
-                            (android.view.ViewGroup.MarginLayoutParams)
-                                    mController.mSubtitleBitmapView.getLayoutParams();
-                    if (lp != null) {
-                        android.graphics.Rect display = new android.graphics.Rect();
-                        mController.mSubtitleBitmapView.getWindowVisibleDisplayFrame(display);
-                        int w = display.width();
-                        int h = display.height();
-                        if (position > 0 && size > 0) {
-                            // position=水平起始位置分数, size=宽度占比(0~1)
-                            int bmpW = (int)(w * size);
-                            int bmpX = (int)(w * position);
-                            lp.width = bmpW;
-                            lp.height = android.view.ViewGroup.MarginLayoutParams.WRAP_CONTENT;
-                            lp.leftMargin = bmpX;
-                            lp.rightMargin = 0;
+                // onCues 可能在 ExoPlayer 内部线程回调，View操作必须切到主线程
+                if (getActivity() == null) return;
+                getActivity().runOnUiThread(() -> {
+                    try {
+                        if (mController.mSubtitleBitmapView == null) return;
+                        mController.mSubtitleView.hasInternal = true;
+                        mController.mSubtitleView.isInternal = true;
+                        if (bmp == null || bmp.isRecycled()) {
+                            mController.mSubtitleBitmapView.setVisibility(android.view.View.GONE);
+                        } else {
+                            mController.mSubtitleView.setVisibility(android.view.View.GONE);
+                            mController.mSubtitleView.setText("");
+                            mController.mSubtitleBitmapView.setImageBitmap(bmp);
+                            // 根据 Cue 的定位参数调整 ImageView 位置
+                            android.view.ViewGroup.MarginLayoutParams lp =
+                                    (android.view.ViewGroup.MarginLayoutParams)
+                                            mController.mSubtitleBitmapView.getLayoutParams();
+                            if (lp != null) {
+                                android.graphics.Rect display = new android.graphics.Rect();
+                                mController.mSubtitleBitmapView.getWindowVisibleDisplayFrame(display);
+                                int w = display.width();
+                                int h = display.height();
+                                if (position > 0 && size > 0) {
+                                    int bmpW = (int)(w * size);
+                                    int bmpX = (int)(w * position);
+                                    lp.width = bmpW;
+                                    lp.height = android.view.ViewGroup.MarginLayoutParams.WRAP_CONTENT;
+                                    lp.leftMargin = bmpX;
+                                    lp.rightMargin = 0;
+                                }
+                                if (line > 0) {
+                                    int bmpY = (int)(h * line);
+                                    lp.topMargin = bmpY;
+                                    lp.bottomMargin = 0;
+                                }
+                                mController.mSubtitleBitmapView.setLayoutParams(lp);
+                            }
+                            mController.mSubtitleBitmapView.setVisibility(android.view.View.VISIBLE);
                         }
-                        if (line > 0) {
-                            // line=垂直位置(0~1)，lineType=0表示分数
-                            // lineAnchor=0(start)表示顶部对齐
-                            int bmpY = (int)(h * line);
-                            lp.topMargin = bmpY;
-                            lp.bottomMargin = 0;
-                        }
-                        mController.mSubtitleBitmapView.setLayoutParams(lp);
+                    } catch (Exception e) {
+                        android.util.Log.e("BitmapSub", "render error", e);
                     }
-                    mController.mSubtitleBitmapView.setVisibility(android.view.View.VISIBLE);
-                }
+                });
             });
 
             // 尝试立即获取轨道（已准备就绪时直接选中）

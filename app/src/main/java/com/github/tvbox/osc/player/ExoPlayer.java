@@ -258,59 +258,59 @@ public class ExoPlayer extends Media3ExoPlayer {
             mExoPlayer.addListener(new androidx.media3.common.Player.Listener() {
                 @Override
                 public void onCues(@NonNull java.util.List<Cue> cues) {
-                    if (cues == null || cues.isEmpty()) {
-                        // 空cue清除图形字幕
-                        if (mExoBitmapSubtitleListener != null) {
-                            mExoBitmapSubtitleListener.onSubtitleBitmap(null, -1f, -1f, -1f);
-                        }
-                        return;
-                    }
-                    boolean hasBitmap = false;
-                    StringBuilder sb = new StringBuilder();
-                    for (Cue cue : cues) {
-                        // 优先检查bitmap（PGS图形字幕）
-                        android.graphics.Bitmap bmp = null;
-                        try {
-                            java.lang.reflect.Field bf = cue.getClass().getField("bitmap");
-                            bmp = (android.graphics.Bitmap) bf.get(cue);
-                        } catch (Exception ignored) {}
-                        if (bmp != null) {
-                            hasBitmap = true;
-                            subtitleIsBitmap = true;  // 确认是 PGS 图形字幕
+                    try {
+                        if (cues == null || cues.isEmpty()) {
                             if (mExoBitmapSubtitleListener != null) {
-                                // 从 Cue 反射读取 position/line/size 用于正确放置
-                                float line = -1f, position = -1f, size = -1f;
-                                try {
-                                    java.lang.reflect.Field lineF = cue.getClass().getField("line");
-                                    java.lang.reflect.Field posF = cue.getClass().getField("position");
-                                    java.lang.reflect.Field sizeF = cue.getClass().getField("size");
-                                    line = lineF.getFloat(cue);
-                                    position = posF.getFloat(cue);
-                                    size = sizeF.getFloat(cue);
-                                } catch (Exception ignored) {}
-                                mExoBitmapSubtitleListener.onSubtitleBitmap(bmp, line, position, size);
+                                mExoBitmapSubtitleListener.onSubtitleBitmap(null, -1f, -1f, -1f);
                             }
-                            continue;
+                            return;
                         }
-                        // 文字字幕
-                        CharSequence textContent = cue.text;
-                        if (textContent == null || textContent.length() == 0) {
+                        boolean hasBitmap = false;
+                        StringBuilder sb = new StringBuilder();
+                        for (Cue cue : cues) {
+                            android.graphics.Bitmap bmp = null;
                             try {
-                                java.lang.reflect.Method m = cue.getClass().getMethod("getText");
-                                Object r = m.invoke(cue);
-                                if (r instanceof CharSequence) textContent = (CharSequence) r;
+                                java.lang.reflect.Field bf = cue.getClass().getField("bitmap");
+                                bmp = (android.graphics.Bitmap) bf.get(cue);
                             } catch (Exception ignored) {}
+                            if (bmp != null) {
+                                hasBitmap = true;
+                                subtitleIsBitmap = true;
+                                if (mExoBitmapSubtitleListener != null) {
+                                    float line = -1f, position = -1f, size = -1f;
+                                    try {
+                                        java.lang.reflect.Field lineF = cue.getClass().getField("line");
+                                        java.lang.reflect.Field posF = cue.getClass().getField("position");
+                                        java.lang.reflect.Field sizeF = cue.getClass().getField("size");
+                                        line = lineF.getFloat(cue);
+                                        position = posF.getFloat(cue);
+                                        size = sizeF.getFloat(cue);
+                                    } catch (Exception ignored) {}
+                                    mExoBitmapSubtitleListener.onSubtitleBitmap(bmp, line, position, size);
+                                }
+                                continue;
+                            }
+                            CharSequence textContent = cue.text;
+                            if (textContent == null || textContent.length() == 0) {
+                                try {
+                                    java.lang.reflect.Method m = cue.getClass().getMethod("getText");
+                                    Object r = m.invoke(cue);
+                                    if (r instanceof CharSequence) textContent = (CharSequence) r;
+                                } catch (Exception ignored) {}
+                            }
+                            if (textContent != null && textContent.length() > 0) {
+                                if (sb.length() > 0) sb.append("\n");
+                                sb.append(textContent);
+                            }
                         }
-                        if (textContent != null && textContent.length() > 0) {
-                            if (sb.length() > 0) sb.append("\n");
-                            sb.append(textContent);
+                        if (hasBitmap) return;
+                        final String text = sb.toString();
+                        android.util.Log.d("SubCue", "onCues: text='" + text + "' listener=" + (mExoSubtitleListener != null));
+                        if (mExoSubtitleListener != null) {
+                            mExoSubtitleListener.onSubtitleText(text.isEmpty() ? null : text);
                         }
-                    }
-                    if (hasBitmap) return; // 图形字幕已处理
-                    final String text = sb.toString();
-                    android.util.Log.d("SubCue", "onCues: text='" + text + "' listener=" + (mExoSubtitleListener != null));
-                    if (mExoSubtitleListener != null) {
-                        mExoSubtitleListener.onSubtitleText(text.isEmpty() ? null : text);
+                    } catch (Exception e) {
+                        android.util.Log.e("SubCue", "onCues crashed", e);
                     }
                 }
             });
