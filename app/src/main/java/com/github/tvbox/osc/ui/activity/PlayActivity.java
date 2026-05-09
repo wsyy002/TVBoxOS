@@ -572,6 +572,11 @@ public class PlayActivity extends BaseActivity {
                             mVideoView.setUrl(url);
                         }
                         mVideoView.start();
+                        // 初始化字幕视图(通过延迟确保播放器已准备)
+                        new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+                            initSubtitleView();
+                            android.util.Log.i("IJK_SUB", "initSubtitleView called from goPlayUrl delay");
+                        }, 500);
                         mController.resetSpeed();
                     }
                 }
