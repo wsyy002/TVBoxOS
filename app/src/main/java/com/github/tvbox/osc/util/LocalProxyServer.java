@@ -54,6 +54,7 @@ public class LocalProxyServer extends NanoHTTPD {
      * 为 SMB 路径创建代理 URL（带认证信息）
      */
     public String registerSmbStream(String smbUrl, final String username, final String password, final String domain) {
+        final long[] knownSize = {-1};
         StreamSource source = new StreamSource() {
             @Override
             public InputStream openStream() throws Exception {
@@ -64,17 +65,24 @@ public class LocalProxyServer extends NanoHTTPD {
                     Class<?> ctxSingleClass = Class.forName("jcifs.context.SingletonContext");
 
                     Object baseCtx = ctxSingleClass.getMethod("getInstance").invoke(null);
-                    Object auth = null;
                     if (username != null && !username.isEmpty()) {
                         java.lang.reflect.Constructor<?> authCtor = authClass.getConstructor(ctxClass, String.class, String.class, String.class);
                         String dom = (domain != null && !domain.isEmpty()) ? domain : "WORKGROUP";
-                        auth = authCtor.newInstance(baseCtx, dom, username, password);
+                        Object auth = authCtor.newInstance(baseCtx, dom, username, password);
                         java.lang.reflect.Method withCreds = ctxClass.getMethod("withCredentials", authClass);
                         baseCtx = withCreds.invoke(baseCtx, auth);
                     }
 
                     java.lang.reflect.Constructor<?> fileCtor = smbFileClass.getConstructor(String.class, ctxClass);
                     Object smbFile = fileCtor.newInstance(smbUrl, baseCtx);
+
+                    // 获取文件大小以支持拖动进度条
+                    try {
+                        java.lang.reflect.Method lengthMethod = smbFileClass.getMethod("length");
+                        Object len = lengthMethod.invoke(smbFile);
+                        if (len instanceof Long) knownSize[0] = (Long) len;
+                    } catch (Exception ignored) {}
+
                     java.lang.reflect.Method getInputStream = smbFileClass.getMethod("getInputStream");
                     return (InputStream) getInputStream.invoke(smbFile);
                 } catch (Exception e) {
@@ -85,7 +93,7 @@ public class LocalProxyServer extends NanoHTTPD {
 
             @Override
             public long getSize() {
-                return -1;
+                return knownSize[0];
             }
 
             @Override
@@ -212,24 +220,34 @@ public class LocalProxyServer extends NanoHTTPD {
                 InputStream inputStream = source.openStream();
                 long fileSize = source.getSize();
 
-                if (rangeHeader != null && fileSize > 0) {
-                    // 有 Range 头，支持拖动进度
+                if (rangeHeader != null) {
+                    // 有 Range 头，尝试跳到指定位置（支持拖动进度条、快进等操作）
                     String[] range = rangeHeader.replace("bytes=", "").split("-");
                     long start = Long.parseLong(range[0]);
-                    long end = range.length > 1 ? Long.parseLong(range[1]) : fileSize - 1;
-                    long length = end - start + 1;
+                    long end = (fileSize > 0 && range.length > 1) ? Long.parseLong(range[1]) : (fileSize > 0 ? fileSize - 1 : -1);
+                    long length = (end > 0 && fileSize > 0) ? end - start + 1 : -1;
 
-                    inputStream.skip(start);
+                    // 跳过到指定位置
+                    long skipped = 0;
+                    while (skipped < start) {
+                        long s = inputStream.skip(start - skipped);
+                        if (s <= 0) break;
+                        skipped += s;
+                    }
 
                     Response response = newChunkedResponse(
                             Response.Status.PARTIAL_CONTENT,
                             source.getMimeType(),
                             inputStream
                     );
-                    response.addHeader("Content-Range",
-                            "bytes " + start + "-" + end + "/" + fileSize);
-                    response.addHeader("Content-Length", String.valueOf(length));
                     response.addHeader("Accept-Ranges", "bytes");
+                    if (fileSize > 0) {
+                        end = (end > 0) ? end : fileSize - 1;
+                        length = end - start + 1;
+                        response.addHeader("Content-Range",
+                                "bytes " + start + "-" + end + "/" + fileSize);
+                        response.addHeader("Content-Length", String.valueOf(length));
+                    }
                     return response;
                 } else {
                     // 无 Range，全量分块传输
