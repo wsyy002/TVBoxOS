@@ -9,14 +9,14 @@
     <RelativeLayout
         android:id="@+id/topLayout"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/vs_55"
+        android:layout_height="@dimen/vs_50"
         android:background="@color/color_0E121B"
         android:gravity="center_vertical">
 
         <TextView
             android:id="@+id/btnHome"
-            android:layout_width="@dimen/vs_55"
-            android:layout_height="@dimen/vs_55"
+            android:layout_width="@dimen/vs_50"
+            android:layout_height="@dimen/vs_50"
             android:layout_centerVertical="true"
             android:background="@drawable/button_dialog_main"
             android:gravity="center"
