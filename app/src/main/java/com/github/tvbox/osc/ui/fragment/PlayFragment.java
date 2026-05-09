@@ -436,13 +436,11 @@ public class PlayFragment extends BaseLazyFragment {
         AbstractPlayer mediaPlayer = mVideoView.getMediaPlayer();
         // 获取字幕轨道信息
         com.github.tvbox.osc.player.TrackInfo trackInfo = null;
-        com.github.tvbox.osc.player.ExoPlayer exoPlayer = null;
 
         if (mediaPlayer instanceof IjkMediaPlayer) {
             trackInfo = ((IjkMediaPlayer)mediaPlayer).getTrackInfo();
         } else if (mediaPlayer instanceof com.github.tvbox.osc.player.ExoPlayer) {
-            exoPlayer = (com.github.tvbox.osc.player.ExoPlayer) mediaPlayer;
-            trackInfo = exoPlayer.getTrackInfo();
+            trackInfo = ((com.github.tvbox.osc.player.ExoPlayer) mediaPlayer).getTrackInfo();
         }
 
         if (trackInfo == null) {
@@ -465,10 +463,8 @@ public class PlayFragment extends BaseLazyFragment {
                     mController.mSubtitleView.destroy();
                     mController.mSubtitleView.clearSubtitleCache();
                     mController.mSubtitleView.isInternal = true;
-                    if (exoPlayer != null && mediaPlayer instanceof com.github.tvbox.osc.player.ExoPlayer) {
-                        // ExoPlayer: 通过getTrackInfo找到字幕轨道索引并选中
-                        com.github.tvbox.osc.player.ExoPlayer ep = (com.github.tvbox.osc.player.ExoPlayer) mediaPlayer;
-                        ep.selectSubtitleTrack(value.groupIndex, value.index);
+                    if (mediaPlayer instanceof com.github.tvbox.osc.player.ExoPlayer) {
+                        ((com.github.tvbox.osc.player.ExoPlayer) mediaPlayer).selectSubtitleTrack(value.groupIndex, value.index);
                     } else if (mediaPlayer instanceof IjkMediaPlayer) {
                         ((IjkMediaPlayer)mediaPlayer).setTrack(value.index);
                     }
