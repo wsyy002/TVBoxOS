@@ -201,13 +201,12 @@ public class ExoPlayer extends Media3ExoPlayer {
         }
         return String.join(", ", channelLabel, codec);
     }
-}
     /**
      * 选择字幕轨道（通过Media3的TrackSelector）
      */
     public void selectSubtitleTrack(int groupIndex, int trackIndex) {
         try {
-            androidx.media3.exoplayer.trackselection.MappingTrackSelector.MappedTrackInfo mappedInfo = mTrackSelector.getCurrentMappedTrackInfo();
+            MappingTrackSelector.MappedTrackInfo mappedInfo = mTrackSelector.getCurrentMappedTrackInfo();
             if (mappedInfo == null) return;
 
             int textRendererIndex = -1;
@@ -232,5 +231,4 @@ public class ExoPlayer extends Media3ExoPlayer {
             LOG.i("selectSubtitleTrack error: " + e.getMessage());
         }
     }
-
 }
