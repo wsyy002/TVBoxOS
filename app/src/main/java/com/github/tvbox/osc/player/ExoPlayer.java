@@ -272,4 +272,21 @@ public class ExoPlayer extends Media3ExoPlayer {
             android.util.Log.e("ExoPlayer", "initSubtitleCueListener failed", e);
         }
     }
+
+    private String formatSubtitleMime(String mime) {
+        if (mime == null) return "";
+        switch (mime) {
+            case "application/x-media3-cues": return "字幕";
+            case "text/vtt": return "WebVTT";
+            case "application/x-subrip": return "SRT";
+            case "text/x-ssa": return "ASS";
+            case "application/x-ass": return "ASS";
+            case "application/ttml+xml": return "TTML";
+            case "image/pgs": return "PGS";
+            case "image/vnd.dvb.subtitle": return "DVB";
+            default:
+                int slash = mime.lastIndexOf('/');
+                return slash >= 0 ? mime.substring(slash + 1).toUpperCase() : mime.toUpperCase();
+        }
+    }
 }
