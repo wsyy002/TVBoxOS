@@ -668,11 +668,13 @@ public class PlayActivity extends BaseActivity {
     }
 
     private void initSubtitleView() {
+        android.util.Log.i("IJK_SUB", "initSubtitleView called, player=" + (mVideoView.getMediaPlayer() != null ? mVideoView.getMediaPlayer().getClass().getSimpleName() : "null"));
         TrackInfo trackInfo = null;
         if (mVideoView.getMediaPlayer() instanceof IjkMediaPlayer) {
             trackInfo = ((IjkMediaPlayer)(mVideoView.getMediaPlayer())).getTrackInfo();
             if (trackInfo != null && trackInfo.getSubtitle().size() > 0) {
                 mController.mSubtitleView.hasInternal = true;
+                android.util.Log.i("IJK_SUB", "IJK subtitles found: " + trackInfo.getSubtitle().size() + " tracks");
             }
             //默认选中第一个音轨 一般第一个音轨是国语 && 加载上一次选中的
             ((IjkMediaPlayer)mVideoView.getMediaPlayer()).loadDefaultTrack(trackInfo,progressKey);
