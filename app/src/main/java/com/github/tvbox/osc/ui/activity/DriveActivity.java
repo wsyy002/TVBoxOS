@@ -121,6 +121,12 @@ public class DriveActivity extends BaseActivity {
                     return;
                 }
 
+                if (selectedItem.getDriveData() != null && selectedItem.parentFolder == null) {
+                    // 根级别存储：显示操作菜单（浏览/编辑/删除）
+                    showDriveActionMenu(selectedItem);
+                    return;
+                }
+
                 if (viewModel == null) {
                     initViewModel(selectedItem);
                     if (!selectedItem.isFile) {
@@ -204,6 +210,50 @@ public class DriveActivity extends BaseActivity {
         btnAddServer.setVisibility(View.VISIBLE);
         tvTitle.setText("文件管理器");
         initData();
+    }
+
+    /**
+     * 根级别存储操作菜单：浏览 / 编辑 / 删除
+     */
+    private void showDriveActionMenu(DriveFolderFile item) {
+        String[] actions = new String[]{"📂 浏览", "✏️ 编辑", "🗑️ 删除"};
+        SelectDialog<String> dialog = new SelectDialog<>(this);
+        dialog.setTip(item.name);
+        dialog.setAdapter(new SelectDialogAdapter.SelectDialogInterface<String>() {
+            @Override
+            public void click(String value, int pos) {
+                dialog.dismiss();
+                if (pos == 0) {
+                    // 浏览
+                    btnAddServer.setVisibility(View.GONE);
+                    tvTitle.setText(item.name);
+                    initViewModel(item);
+                    loadDriveData();
+                } else if (pos == 1) {
+                    // 编辑
+                    showEditDialog(item);
+                } else if (pos == 2) {
+                    // 删除
+                    showDeleteConfirm(item);
+                }
+            }
+
+            @Override
+            public String getDisplay(String val) {
+                return val;
+            }
+        }, new DiffUtil.ItemCallback<String>() {
+            @Override
+            public boolean areItemsTheSame(@NonNull String oldItem, @NonNull String newItem) {
+                return oldItem.equals(newItem);
+            }
+
+            @Override
+            public boolean areContentsTheSame(@NonNull String oldItem, @NonNull String newItem) {
+                return oldItem.equals(newItem);
+            }
+        }, Arrays.asList(actions), 0);
+        dialog.show();
     }
 
     private void showDeleteConfirm(DriveFolderFile item) {
@@ -313,6 +363,15 @@ public class DriveActivity extends BaseActivity {
         dialog.show();
     }
 
+    private void showEditDialog(DriveFolderFile item) {
+        StorageDrive sd = item.getDriveData();
+        if (sd == null) return;
+        StorageDriveType.TYPE type = StorageDriveType.TYPE.values()[sd.driveType];
+        String[] typeNames = StorageDriveType.getTypeNames();
+        String typeLabel = sd.driveType < typeNames.length ? typeNames[sd.driveType] : "";
+        showConfigDialog("编辑 " + typeLabel, type, sd);
+    }
+
     private void showConfigDialog(String title, StorageDriveType.TYPE type, StorageDrive existing) {
         BaseDialog dialog = new BaseDialog(this);
         View view = getLayoutInflater().inflate(R.layout.dialog_drive_config, null);
@@ -322,8 +381,22 @@ public class DriveActivity extends BaseActivity {
 
         LinearLayout fieldContainer = view.findViewById(R.id.fieldContainer);
         List<EditText> inputs = new ArrayList<>();
+        List<String> fieldKeys = new ArrayList<>();
 
-        // 根据类型生成输入字段
+        // 先添加自定义名称字段
+        View nameField = getLayoutInflater().inflate(R.layout.item_drive_config_field, null);
+        TextView nameLabel = nameField.findViewById(R.id.tvLabel);
+        EditText nameInput = nameField.findViewById(R.id.etInput);
+        nameLabel.setText("名称");
+        nameInput.setHint("自定义名称（可选）");
+        if (existing != null && existing.name != null) {
+            nameInput.setText(existing.name);
+        }
+        fieldContainer.addView(nameField);
+        inputs.add(nameInput);
+        fieldKeys.add("_name");
+
+        // 根据类型生成配置字段
         String[][] fields = getConfigFields(type);
         for (String[] field : fields) {
             View fieldView = getLayoutInflater().inflate(R.layout.item_drive_config_field, null);
@@ -334,21 +407,21 @@ public class DriveActivity extends BaseActivity {
             if (field.length > 2) {
                 input.setText(field[2]);
             }
-            // 如果是密码字段
             if (field[0].contains("密") || field[0].contains("密码")) {
                 input.setInputType(android.text.InputType.TYPE_CLASS_TEXT
                         | android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD);
             }
             fieldContainer.addView(fieldView);
             inputs.add(input);
+            fieldKeys.add(field[0]);
         }
 
-        // 如果已有配置，填入已有值
+        // 已有配置：填入值
         if (existing != null && existing.configJson != null) {
             try {
                 com.google.gson.JsonObject cfg = com.google.gson.JsonParser.parseString(existing.configJson).getAsJsonObject();
-                for (int i = 0; i < inputs.size() && i < fields.length; i++) {
-                    String key = fields[i][0];
+                for (int i = 1; i < inputs.size() && i < fieldKeys.size(); i++) {
+                    String key = fieldKeys.get(i);
                     if (cfg.has(key)) {
                         inputs.get(i).setText(cfg.get(key).getAsString());
                     }
@@ -358,22 +431,24 @@ public class DriveActivity extends BaseActivity {
 
         view.findViewById(R.id.btnCancel).setOnClickListener(v -> dialog.dismiss());
         view.findViewById(R.id.btnConfirm).setOnClickListener(v -> {
-            // 收集所有输入
+            // 收集自定义名称
+            String customName = inputs.get(0).getText().toString().trim();
+
+            // 收集配置字段
             JsonObject config = new JsonObject();
-            StringBuilder nameBuilder = new StringBuilder();
-            for (int i = 0; i < inputs.size() && i < fields.length; i++) {
+            for (int i = 1; i < inputs.size() && i < fieldKeys.size(); i++) {
                 String val = inputs.get(i).getText().toString().trim();
-                if (val.isEmpty() && i < 2) {
-                    Toast.makeText(mContext, "请填写" + fields[i][0], Toast.LENGTH_SHORT).show();
+                String key = fieldKeys.get(i);
+                if (val.isEmpty() && key.contains("地址")) {
+                    Toast.makeText(mContext, "请填写" + key, Toast.LENGTH_SHORT).show();
                     return;
                 }
-                config.addProperty(fields[i][0], val);
-                if (i == 0) {
-                    nameBuilder.append(val);
-                }
+                config.addProperty(key, val);
             }
 
-            String name = title + " - " + (nameBuilder.length() > 30 ? nameBuilder.substring(0, 30) : nameBuilder.toString());
+            // 名称：用自定义名称或自动生成
+            String name = customName.isEmpty() ? title : customName;
+
             if (existing != null) {
                 RoomDataManger.updateDriveConfig(existing.id, name, type.ordinal(), config.toString());
             } else {
