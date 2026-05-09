@@ -275,8 +275,9 @@ public class ExoPlayer extends Media3ExoPlayer {
 
     private String formatSubtitleMime(String mime) {
         if (mime == null) return "";
+        // 显示实际原始格式名称
         switch (mime) {
-            case "application/x-media3-cues": return "字幕";
+            case "application/x-media3-cues": return "TIMEDTEXT";
             case "text/vtt": return "WebVTT";
             case "application/x-subrip": return "SRT";
             case "text/x-ssa": return "ASS";
