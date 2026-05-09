@@ -485,6 +485,8 @@ public class ModelSettingFragment extends BaseLazyFragment {
                     public void click(Integer value, int pos) {
                         Integer thisPlayerType = players.get(pos);
                         Hawk.put(HawkConfig.PLAY_TYPE, thisPlayerType);
+                        // 同步更新直播播放器设置（LivePlayerManager 以此为准）
+                        Hawk.put(HawkConfig.LIVE_PLAY_TYPE, thisPlayerType);
                         tvPlay.setText(PlayerHelper.getPlayerName(thisPlayerType));
                         PlayerHelper.init();
                     }

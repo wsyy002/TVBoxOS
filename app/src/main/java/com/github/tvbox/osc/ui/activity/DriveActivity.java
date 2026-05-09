@@ -541,12 +541,16 @@ public class DriveActivity extends BaseActivity {
                 + viewModel.getCurrentDriveNote().name + "/" + file.name;
 
         if (file.getDriveType() == StorageDriveType.TYPE.LOCAL) {
-            playUrl = "file://" + driveUrl + pathSuffix;
+            String localPath = driveUrl;
+            if (!localPath.endsWith("/")) localPath += "/";
+            playUrl = "file://" + localPath + pathSuffix;
         } else if (file.getDriveType() == StorageDriveType.TYPE.WEBDAV) {
             playUrl = driveUrl + "/" + pathSuffix;
             playUrl = com.github.tvbox.osc.util.LocalProxyServer.getInstance().proxyUrl(playUrl);
         } else if (file.getDriveType() == StorageDriveType.TYPE.SMB) {
-            String smbUrl = driveUrl + pathSuffix;
+            String smbPath = driveUrl;
+            if (!smbPath.endsWith("/")) smbPath += "/";
+            String smbUrl = smbPath + pathSuffix;
             playUrl = com.github.tvbox.osc.util.LocalProxyServer.getInstance().proxyUrl(smbUrl);
         } else if (file.getDriveType() == StorageDriveType.TYPE.FTP) {
             String ftpUrl = "ftp://" + driveUrl + "/" + pathSuffix;
