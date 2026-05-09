@@ -116,6 +116,11 @@ public class DriveActivity extends BaseActivity {
                     return;
                 }
 
+                android.util.Log.i("DRIVE_CLICK", "Clicked: name=" + selectedItem.name
+                        + " driveData=" + (selectedItem.getDriveData() != null ? selectedItem.getDriveData().id : "null")
+                        + " parentFolder=" + (selectedItem.parentFolder != null ? "non-null" : "null")
+                        + " viewModel=" + (viewModel != null ? "exists" : "null"));
+
                 if (selectedItem.parentFolder != null && selectedItem.name == null) {
                     goBack();
                     return;
