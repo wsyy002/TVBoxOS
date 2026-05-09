@@ -216,16 +216,10 @@ public class SubtitleDialog extends BaseDialog {
         }
     }
 
-    // 动态创建内置字幕按钮(绕过XML布局问题)
+    // 确保内置字幕按钮可见
     private void ensureInternalButton() {
-        if (selectInternal == null) {
-            // 如果XML中的selectInternal没被创建，手动创建一个
-            android.util.Log.w("SUB", "selectInternal was null, creating dynamically");
-        }
         if (selectInternal != null) {
-            // 确保按钮可见且在最前面
             selectInternal.setVisibility(View.VISIBLE);
-            selectInternal.bringToFront();
         }
     }
 
