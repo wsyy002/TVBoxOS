@@ -679,11 +679,14 @@ public class PlayActivity extends BaseActivity {
             ((IjkMediaPlayer)(mVideoView.getMediaPlayer())).setOnTimedTextListener(new IMediaPlayer.OnTimedTextListener() {
                 @Override
                 public void onTimedText(IMediaPlayer mp, IjkTimedText text) {
+                    android.util.Log.i("IJK_SUB", "onTimedText: text=" + (text != null ? text.getText() : "null")
+                            + " isInternal=" + mController.mSubtitleView.isInternal);
                     if(text==null)return;
                     if (mController.mSubtitleView.isInternal) {
                         com.github.tvbox.osc.subtitle.model.Subtitle subtitle = new com.github.tvbox.osc.subtitle.model.Subtitle();
                         subtitle.content = text.getText();
                         mController.mSubtitleView.onSubtitleChanged(subtitle);
+                        android.util.Log.i("IJK_SUB", "Subtitle displayed: " + text.getText());
                     }
                 }
             });
