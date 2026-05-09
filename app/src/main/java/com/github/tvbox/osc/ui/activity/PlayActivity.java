@@ -129,6 +129,7 @@ public class PlayActivity extends BaseActivity {
 
     @Override
     protected void init() {
+        android.util.Log.i("IJK_SUB", "====== PlayActivity INIT STARTED ======");
         initView();
         initViewModel();
         initData();
