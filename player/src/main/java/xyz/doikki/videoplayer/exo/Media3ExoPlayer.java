@@ -63,6 +63,19 @@ public class Media3ExoPlayer extends AbstractPlayer implements Player.Listener {
 
     protected Context mAppContext;
     protected ExoPlayer mExoPlayer;
+    private SubtitleListener mExoSubtitleListener;
+
+    /**
+     * 字幕回调接口
+     */
+    public interface SubtitleListener {
+        void onSubtitleText(String text);
+    }
+
+    public void setExoSubtitleListener(SubtitleListener listener) {
+        mExoSubtitleListener = listener;
+    }
+
     protected MediaSource mMediaSource;
     protected MediaSource.Factory mMediaSourceFactory;
 
@@ -130,6 +143,7 @@ public class Media3ExoPlayer extends AbstractPlayer implements Player.Listener {
         }
 
         mExoPlayer.addListener(this);
+        setupSubtitleListener();
     }
 
     @Override

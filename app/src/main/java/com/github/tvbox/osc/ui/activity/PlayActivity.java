@@ -603,7 +603,18 @@ public class PlayActivity extends BaseActivity {
         if(mVideoView.getMediaPlayer() instanceof ExoPlayer){
             //加载上一次选中的
             ((ExoPlayer) mVideoView.getMediaPlayer()).loadDefaultTrack(progressKey);
-            //设置Exo内置字幕输出
+            //Exo内置字幕: 通过动态代理监听 onCues
+            ((ExoPlayer) mVideoView.getMediaPlayer()).setExoSubtitleListener(text -> {
+                //首次收到字幕数据时标记为有内置字幕
+                if (!mController.mSubtitleView.hasInternal) {
+                    mController.mSubtitleView.hasInternal = true;
+                }
+                if (mController.mSubtitleView.isInternal) {
+                    com.github.tvbox.osc.subtitle.model.Subtitle subtitle = new com.github.tvbox.osc.subtitle.model.Subtitle();
+                    subtitle.content = text;
+                    mController.mSubtitleView.onSubtitleChanged(subtitle);
+                }
+            });
         }
         mController.mSubtitleView.bindToMediaPlayer(mVideoView.getMediaPlayer());
         mController.mSubtitleView.setPlaySubtitleCacheKey(subtitleCacheKey);
