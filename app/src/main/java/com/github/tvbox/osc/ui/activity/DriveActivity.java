@@ -550,8 +550,7 @@ public class DriveActivity extends BaseActivity {
         } else if (file.getDriveType() == StorageDriveType.TYPE.SMB) {
             String smbPath = driveUrl;
             if (!smbPath.endsWith("/")) smbPath += "/";
-            String smbUrl = smbPath + pathSuffix;
-            // 从 driveData 配置中提取 SMB 认证信息
+            // 在 SMB URL 中嵌入认证信息: smb://domain;user:pass@host/share/path
             String smbUser = "", smbPass = "", smbDomain = "WORKGROUP";
             try {
                 if (driveData != null && driveData.configJson != null && !driveData.configJson.isEmpty()) {
@@ -561,8 +560,21 @@ public class DriveActivity extends BaseActivity {
                     if (cfg.has("域")) smbDomain = cfg.get("域").getAsString();
                 }
             } catch (Exception ignored) {}
-            playUrl = com.github.tvbox.osc.util.LocalProxyServer.getInstance()
-                    .registerSmbStream(smbUrl, smbUser, smbPass, smbDomain);
+            // 构造带认证的 URL
+            String credsUrl;
+            if (!smbUser.isEmpty()) {
+                // smb://domain;user:pass@host/share/path
+                String prefix = smbPath.substring(0, smbPath.indexOf("/", smbPath.indexOf("//") + 2));
+                String suffix = smbPath.substring(smbPath.indexOf("/", smbPath.indexOf("//") + 2));
+                if (!smbDomain.isEmpty() && !smbDomain.equals("WORKGROUP")) {
+                    credsUrl = "smb://" + smbDomain + ";" + smbUser + ":" + smbPass + "@" + prefix.substring(6) + suffix + pathSuffix;
+                } else {
+                    credsUrl = "smb://" + smbUser + ":" + smbPass + "@" + prefix.substring(6) + suffix + pathSuffix;
+                }
+            } else {
+                credsUrl = smbPath + pathSuffix;
+            }
+            playUrl = com.github.tvbox.osc.util.LocalProxyServer.getInstance().proxyUrl(credsUrl);
         } else if (file.getDriveType() == StorageDriveType.TYPE.FTP) {
             String ftpUrl = "ftp://" + driveUrl + "/" + pathSuffix;
             playUrl = com.github.tvbox.osc.util.LocalProxyServer.getInstance().proxyUrl(ftpUrl);
