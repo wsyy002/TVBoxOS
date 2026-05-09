@@ -63,7 +63,7 @@ public class Media3ExoPlayer extends AbstractPlayer implements Player.Listener {
 
     protected Context mAppContext;
     protected ExoPlayer mExoPlayer;
-    private SubtitleListener mExoSubtitleListener;
+    protected SubtitleListener mExoSubtitleListener;
 
     /**
      * 字幕回调接口
