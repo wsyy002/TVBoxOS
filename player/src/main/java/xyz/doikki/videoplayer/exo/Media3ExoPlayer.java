@@ -78,44 +78,27 @@ public class Media3ExoPlayer extends AbstractPlayer implements Player.Listener {
 
     public Media3ExoPlayer(Context context) {
         mAppContext = context.getApplicationContext();
-        mEnableHardwareDecoder = isHardwareDecoderEnabled();
-    }
-
-    private boolean mEnableHardwareDecoder = true;
-
-    /**
-     * 通过反射读取 Hawk 中的 Exo 解码器设置
-     */
-    private boolean isHardwareDecoderEnabled() {
-        if (mAppContext != null) {
-            try {
-                Class<?> hawkClass = Class.forName("com.orhanobut.hawk.Hawk");
-                java.lang.reflect.Method get = hawkClass.getMethod("get", String.class, Object.class);
-                String codec = (String) get.invoke(null, "exo_codec", "硬解码");
-                return "硬解码".equals(codec);
-            } catch (Exception ignored) {
-            }
-        }
-        return true;
-    }
-
-    /**
-     * 外部设置硬解开关（创建播放器前调用才有效）
-     */
-    public void setHardwareDecoderEnabled(boolean enabled) {
-        mEnableHardwareDecoder = enabled;
     }
 
     @Override
     public void initPlayer() {
+        // 读取 Exo 解码方式设置（通过反射读取Hawk，兼容模块分离）
+        boolean enableHW = true;
+        try {
+            Class<?> hawkClass = Class.forName("com.orhanobut.hawk.Hawk");
+            java.lang.reflect.Method getMethod = hawkClass.getMethod("get", String.class, Object.class);
+            String codec = (String) getMethod.invoke(null, "exo_codec", "硬解码");
+            enableHW = "硬解码".equals(codec);
+        } catch (Exception ignored) {}
+
         // 播放器工厂配置：硬解优先，自动降级
         DefaultRenderersFactory renderersFactory = new DefaultRenderersFactory(mAppContext);
         renderersFactory.setEnableDecoderFallback(true);  // 硬解失败自动降级到软解
         renderersFactory.setExtensionRendererMode(
-            mEnableHardwareDecoder
-                ? DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER
-                : DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF
-        );  // 根据设置选择硬解/软解
+                enableHW
+                        ? DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER
+                        : DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF
+        );
         mRenderersFactory = renderersFactory;
 
         // 轨道选择器
@@ -139,8 +122,7 @@ public class Media3ExoPlayer extends AbstractPlayer implements Player.Listener {
                 .setBandwidthMeter(DefaultBandwidthMeter.getSingletonInstance(mAppContext))
                 .build();
 
-        // 默认不自动播放——由 DKPlayer VideoView 的 start() 控制
-        mExoPlayer.setPlayWhenReady(false);
+        setOptions();
 
         // 播放器日志
         if (VideoViewManager.getConfig().mIsEnableLog) {
@@ -174,10 +156,8 @@ public class Media3ExoPlayer extends AbstractPlayer implements Player.Listener {
             mediaItem = buildMediaItem(path, headers);
         }
 
-        // 使用 DefaultMediaSourceFactory 自动检测格式(HLS/DASH/Progressive)
-        // 兼容 CSP 来源的无后缀名 URL
-        if (path.toLowerCase().contains(".m3u8") || path.toLowerCase().contains("m3u8")) {
-            // 已知HLS: 手动创建 HlsMediaSource 以支持跳转和Header
+        // 根据协议创建 MediaSource
+        if (path.toLowerCase().contains(".m3u8")) {
             mMediaSource = new HlsMediaSource.Factory(
                     new DefaultHttpDataSource.Factory()
                             .setAllowCrossProtocolRedirects(true)
@@ -187,7 +167,8 @@ public class Media3ExoPlayer extends AbstractPlayer implements Player.Listener {
                     new RtmpDataSource.Factory()
             ).createMediaSource(mediaItem);
         } else {
-            // DefaultMediaSourceFactory 自动识别 m3u8/mpd/ts/mp4
+            // 使用 DefaultMediaSourceFactory 自动检测格式(HLS/DASH/Progressive)
+            // 兼容 CSP 来源的无后缀名 URL
             mMediaSource = mMediaSourceFactory.createMediaSource(mediaItem);
         }
     }
@@ -196,8 +177,10 @@ public class Media3ExoPlayer extends AbstractPlayer implements Player.Listener {
         MediaItem.Builder builder = new MediaItem.Builder()
                 .setUri(android.net.Uri.parse(path));
 
-        // 注意: Media3 1.5.0 不支持通过 MediaItem 设置 HTTP 请求头
-        // CSP 源的请求头通过 DefaultHttpDataSource 默认配置处理
+        if (headers != null && !headers.isEmpty()) {
+            // Headers not supported via MediaItem in Media3 1.5.0
+            // They will be applied via DataSource factory
+        }
 
         return builder.build();
     }
@@ -276,7 +259,6 @@ public class Media3ExoPlayer extends AbstractPlayer implements Player.Listener {
         }
 
         mIsPreparing = true;
-        mExoPlayer.setPlayWhenReady(false);
         mExoPlayer.prepare();
     }
 
@@ -372,12 +354,16 @@ public class Media3ExoPlayer extends AbstractPlayer implements Player.Listener {
     @Override
     public void setOptions() {
         if (mExoPlayer != null) {
+            // 准备好就开始播放
+            mExoPlayer.setPlayWhenReady(true);
+
             // 直播优化：减少缓冲
             if (mIsLive) {
                 mExoPlayer.setPlaybackParameters(
                         new PlaybackParameters(1.0f)
                 );
             }
+
         }
     }
 
