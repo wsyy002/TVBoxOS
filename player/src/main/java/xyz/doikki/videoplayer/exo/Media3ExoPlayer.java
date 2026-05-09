@@ -576,8 +576,12 @@ public class Media3ExoPlayer extends AbstractPlayer implements Player.Listener {
             androidx.media3.common.Tracks tracks = mExoPlayer.getCurrentTracks();
             if (tracks == null) return false;
             for (androidx.media3.common.Tracks.Group group : tracks.getGroups()) {
-                if (group.isTrackSupported() && group.getType() == C.TRACK_TYPE_TEXT) {
-                    return true;
+                for (int i = 0; i < group.length; i++) {
+                    if (group.isTrackSupported(i) && group.getTrackFormat(i) != null
+                            && group.getTrackFormat(i).sampleMimeType != null
+                            && group.getTrackFormat(i).sampleMimeType.startsWith("text/")) {
+                        return true;
+                    }
                 }
             }
         } catch (Exception e) {
