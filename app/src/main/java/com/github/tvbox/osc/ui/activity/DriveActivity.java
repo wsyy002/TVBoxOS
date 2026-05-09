@@ -126,11 +126,8 @@ public class DriveActivity extends BaseActivity {
                 }
 
                 if (selectedItem.getDriveData() != null && selectedItem.parentFolder == null) {
-                    // 根级别存储: 如果有remote serv，直接浏览
-                    btnAddServer.setVisibility(View.GONE);
-                    tvTitle.setText(selectedItem.name);
-                    initViewModel(selectedItem);
-                    loadDriveData();
+                    // 根级别存储: 展示操作菜单（浏览/编辑/删除），不再直接进入
+                    showDriveActionMenu(selectedItem);
                     return;
                 }
 

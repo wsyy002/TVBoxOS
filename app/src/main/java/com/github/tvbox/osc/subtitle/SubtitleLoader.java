@@ -8,6 +8,7 @@ import com.github.tvbox.osc.subtitle.exception.FatalParsingException;
 import com.github.tvbox.osc.subtitle.format.FormatASS;
 import com.github.tvbox.osc.subtitle.format.FormatSRT;
 import com.github.tvbox.osc.subtitle.format.FormatSTL;
+import com.github.tvbox.osc.subtitle.format.FormatTTML;
 import com.github.tvbox.osc.subtitle.format.TimedTextFileFormat;
 import com.github.tvbox.osc.subtitle.model.TimedTextObject;
 import com.github.tvbox.osc.subtitle.runtime.AppTaskExecutor;
@@ -227,9 +228,9 @@ public class SubtitleLoader {
         } else if (".stl".equalsIgnoreCase(ext)) {
             return new FormatSTL().parseFile(fileName, newInputStream);
         } else if (".ttml".equalsIgnoreCase(ext)) {
-            return new FormatSTL().parseFile(fileName, newInputStream);
+            return new FormatTTML().parseFile(fileName, newInputStream);
         }
-        TimedTextFileFormat[] arr = {new FormatSRT(), new FormatASS(), new FormatSTL(), new FormatSTL()};
+        TimedTextFileFormat[] arr = {new FormatSRT(), new FormatASS(), new FormatTTML(), new FormatSTL()};
         for(TimedTextFileFormat oneFormat : arr) {
             try {
                 TimedTextObject obj = oneFormat.parseFile(fileName, newInputStream);

@@ -273,6 +273,15 @@ public class ExoPlayer extends Media3ExoPlayer {
         }
     }
 
+    /**
+     * 注册轨道变更监听器，用于在轨道加载后自动选中字幕
+     */
+    public void addOnTracksChangedListener(androidx.media3.common.Player.Listener listener) {
+        if (mExoPlayer != null && listener != null) {
+            mExoPlayer.addListener(listener);
+        }
+    }
+
     private String formatSubtitleMime(String mime) {
         if (mime == null) return "";
         // 显示实际原始格式名称

@@ -625,6 +625,31 @@ public class PlayFragment extends BaseLazyFragment {
         });
     }
 
+    /**
+     * 尝试立即获取ExoPlayer的字幕轨道并自动选中（适用于已准备就绪的情况）
+     */
+    private void trySelectExoSubtitleTrack(com.github.tvbox.osc.player.ExoPlayer exoPlayer) {
+        try {
+            com.github.tvbox.osc.player.TrackInfo ti = exoPlayer.getTrackInfo();
+            if (ti != null && ti.getSubtitle().size() > 0) {
+                java.util.List<TrackInfoBean> subTracks = ti.getSubtitle();
+                int selIdx = 0;
+                for (int i = 0; i < subTracks.size(); i++) {
+                    String lang = subTracks.get(i).language != null ? subTracks.get(i).language.toLowerCase() : "";
+                    String name = subTracks.get(i).name != null ? subTracks.get(i).name.toLowerCase() : "";
+                    if (lang.contains("zh") || lang.contains("chi") || name.contains("中文") || name.contains("国语")) {
+                        selIdx = i;
+                        break;
+                    }
+                }
+                TrackInfoBean sel = subTracks.get(selIdx);
+                exoPlayer.selectSubtitleTrack(sel.groupIndex, sel.index);
+                mController.mSubtitleView.hasInternal = true;
+                mController.mSubtitleView.isInternal = true;
+            }
+        } catch (Exception ignored) {}
+    }
+
     private void initSubtitleView() {
         TrackInfo trackInfo = null;
         AbstractPlayer mediaPlayer = mVideoView.getMediaPlayer();
@@ -666,25 +691,6 @@ public class PlayFragment extends BaseLazyFragment {
             exoPlayer.loadDefaultTrack(progressKey);
             //直接用ExoPlayer(应用模块)注册字幕监听
             exoPlayer.initSubtitleCueListener();
-            //自动选中第一个字幕轨道(如果有)
-            com.github.tvbox.osc.player.TrackInfo exoInfo = exoPlayer.getTrackInfo();
-            if (exoInfo != null && exoInfo.getSubtitle().size() > 0) {
-                mController.mSubtitleView.hasInternal = true;
-                mController.mSubtitleView.isInternal = true;
-                //优先中文
-                java.util.List<TrackInfoBean> subTracks = exoInfo.getSubtitle();
-                int selIdx = 0;
-                for (int i = 0; i < subTracks.size(); i++) {
-                    String lang = subTracks.get(i).language != null ? subTracks.get(i).language.toLowerCase() : "";
-                    String name = subTracks.get(i).name != null ? subTracks.get(i).name.toLowerCase() : "";
-                    if (lang.contains("zh") || lang.contains("chi") || name.contains("中文") || name.contains("国语")) {
-                        selIdx = i;
-                        break;
-                    }
-                }
-                TrackInfoBean sel = subTracks.get(selIdx);
-                exoPlayer.selectSubtitleTrack(sel.groupIndex, sel.index);
-            }
             //Exo字幕监听
             exoPlayer.setExoSubtitleListener(text -> {
                 mController.mSubtitleView.hasInternal = true;
@@ -692,6 +698,36 @@ public class PlayFragment extends BaseLazyFragment {
                 // 设置字幕文本到SimpleSubtitleView
                 mController.mSubtitleView.setText(text);
                 mController.mSubtitleView.setVisibility(android.view.View.VISIBLE);
+            });
+
+            // 尝试立即获取轨道（已准备就绪时直接选中）
+            trySelectExoSubtitleTrack(exoPlayer);
+
+            // 用独立的Player.Listener监听轨道变更，确保轨道加载后自动选中字幕
+            exoPlayer.addOnTracksChangedListener(new androidx.media3.common.Player.Listener() {
+                private boolean tracksApplied = false;
+                @Override
+                public void onTracksChanged(@androidx.annotation.NonNull androidx.media3.common.Tracks tracks) {
+                    if (tracksApplied) return;
+                    com.github.tvbox.osc.player.TrackInfo ti = exoPlayer.getTrackInfo();
+                    if (ti != null && ti.getSubtitle().size() > 0) {
+                        java.util.List<TrackInfoBean> subTracks = ti.getSubtitle();
+                        int selIdx = 0;
+                        for (int i = 0; i < subTracks.size(); i++) {
+                            String lang = subTracks.get(i).language != null ? subTracks.get(i).language.toLowerCase() : "";
+                            String name = subTracks.get(i).name != null ? subTracks.get(i).name.toLowerCase() : "";
+                            if (lang.contains("zh") || lang.contains("chi") || name.contains("中文") || name.contains("国语")) {
+                                selIdx = i;
+                                break;
+                            }
+                        }
+                        TrackInfoBean sel = subTracks.get(selIdx);
+                        exoPlayer.selectSubtitleTrack(sel.groupIndex, sel.index);
+                        mController.mSubtitleView.hasInternal = true;
+                        mController.mSubtitleView.isInternal = true;
+                        tracksApplied = true;
+                    }
+                }
             });
         }
         mController.mSubtitleView.bindToMediaPlayer(mVideoView.getMediaPlayer());
