@@ -51,6 +51,52 @@ public class LocalProxyServer extends NanoHTTPD {
     }
 
     /**
+     * 为 SMB 路径创建代理 URL（带认证信息）
+     */
+    public String registerSmbStream(String smbUrl, final String username, final String password, final String domain) {
+        StreamSource source = new StreamSource() {
+            @Override
+            public InputStream openStream() throws Exception {
+                try {
+                    Class<?> smbFileClass = Class.forName("jcifs.smb.SmbFile");
+                    Class<?> authClass = Class.forName("jcifs.smb.NtlmPasswordAuthentication");
+                    Class<?> ctxClass = Class.forName("jcifs.CIFSContext");
+                    Class<?> ctxSingleClass = Class.forName("jcifs.context.SingletonContext");
+
+                    Object baseCtx = ctxSingleClass.getMethod("getInstance").invoke(null);
+                    Object auth = null;
+                    if (username != null && !username.isEmpty()) {
+                        java.lang.reflect.Constructor<?> authCtor = authClass.getConstructor(ctxClass, String.class, String.class, String.class);
+                        String dom = (domain != null && !domain.isEmpty()) ? domain : "WORKGROUP";
+                        auth = authCtor.newInstance(baseCtx, dom, username, password);
+                        java.lang.reflect.Method withCreds = ctxClass.getMethod("withCredentials", authClass);
+                        baseCtx = withCreds.invoke(baseCtx, auth);
+                    }
+
+                    java.lang.reflect.Constructor<?> fileCtor = smbFileClass.getConstructor(String.class, ctxClass);
+                    Object smbFile = fileCtor.newInstance(smbUrl, baseCtx);
+                    java.lang.reflect.Method getInputStream = smbFileClass.getMethod("getInputStream");
+                    return (InputStream) getInputStream.invoke(smbFile);
+                } catch (Exception e) {
+                    Log.e(TAG, "SMB stream open failed: " + e.getMessage());
+                    throw e;
+                }
+            }
+
+            @Override
+            public long getSize() {
+                return -1;
+            }
+
+            @Override
+            public String getMimeType() {
+                return mimeForPath(smbUrl);
+            }
+        };
+        return registerStream(smbUrl, source);
+    }
+
+    /**
      * 为 SMB/FTP 路径创建代理 URL
      */
     public String proxyUrl(String originalPath) {
@@ -70,25 +116,29 @@ public class LocalProxyServer extends NanoHTTPD {
 
             @Override
             public long getSize() {
-                return -1; // 未知大小，使用分块传输
+                return -1;
             }
 
             @Override
             public String getMimeType() {
-                String lower = originalPath.toLowerCase();
-                if (lower.endsWith(".mp4")) return "video/mp4";
-                if (lower.endsWith(".mkv")) return "video/x-matroska";
-                if (lower.endsWith(".avi")) return "video/x-msvideo";
-                if (lower.endsWith(".ts")) return "video/mp2t";
-                if (lower.endsWith(".mov")) return "video/quicktime";
-                if (lower.endsWith(".flv")) return "video/x-flv";
-                if (lower.endsWith(".wmv")) return "video/x-ms-wmv";
-                if (lower.endsWith(".m3u8")) return "application/x-mpegURL";
-                return "video/mp4";
+                return mimeForPath(originalPath);
             }
         };
 
         return registerStream(originalPath, source);
+    }
+
+    private String mimeForPath(String path) {
+        String lower = path.toLowerCase();
+        if (lower.endsWith(".mp4")) return "video/mp4";
+        if (lower.endsWith(".mkv")) return "video/x-matroska";
+        if (lower.endsWith(".avi")) return "video/x-msvideo";
+        if (lower.endsWith(".ts")) return "video/mp2t";
+        if (lower.endsWith(".mov")) return "video/quicktime";
+        if (lower.endsWith(".flv")) return "video/x-flv";
+        if (lower.endsWith(".wmv")) return "video/x-ms-wmv";
+        if (lower.endsWith(".m3u8")) return "application/x-mpegURL";
+        return "video/mp4";
     }
 
     /**

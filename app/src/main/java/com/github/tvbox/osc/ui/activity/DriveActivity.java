@@ -551,7 +551,18 @@ public class DriveActivity extends BaseActivity {
             String smbPath = driveUrl;
             if (!smbPath.endsWith("/")) smbPath += "/";
             String smbUrl = smbPath + pathSuffix;
-            playUrl = com.github.tvbox.osc.util.LocalProxyServer.getInstance().proxyUrl(smbUrl);
+            // 从 driveData 配置中提取 SMB 认证信息
+            String smbUser = "", smbPass = "", smbDomain = "WORKGROUP";
+            try {
+                if (driveData != null && driveData.configJson != null && !driveData.configJson.isEmpty()) {
+                    com.google.gson.JsonObject cfg = com.google.gson.JsonParser.parseString(driveData.configJson).getAsJsonObject();
+                    if (cfg.has("用户名")) smbUser = cfg.get("用户名").getAsString();
+                    if (cfg.has("密码")) smbPass = cfg.get("密码").getAsString();
+                    if (cfg.has("域")) smbDomain = cfg.get("域").getAsString();
+                }
+            } catch (Exception ignored) {}
+            playUrl = com.github.tvbox.osc.util.LocalProxyServer.getInstance()
+                    .registerSmbStream(smbUrl, smbUser, smbPass, smbDomain);
         } else if (file.getDriveType() == StorageDriveType.TYPE.FTP) {
             String ftpUrl = "ftp://" + driveUrl + "/" + pathSuffix;
             playUrl = com.github.tvbox.osc.util.LocalProxyServer.getInstance().proxyUrl(ftpUrl);

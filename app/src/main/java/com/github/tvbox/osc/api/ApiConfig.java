@@ -887,7 +887,11 @@ public class ApiConfig {
                 String livePlayType =livesOBJ.get("playerType").getAsString();
                 Hawk.put(HawkConfig.LIVE_PLAY_TYPE,livePlayType);
             }else {
-                Hawk.put(HawkConfig.LIVE_PLAY_TYPE,Hawk.get(HawkConfig.PLAY_TYPE, 0));
+                // 直播默认使用IJK硬解（兼容性最好），除非用户已在设置中明确修改过
+                int savedLiveType = Hawk.get(HawkConfig.LIVE_PLAY_TYPE, -1);
+                if (savedLiveType == -1) {
+                    Hawk.put(HawkConfig.LIVE_PLAY_TYPE, 1);
+                }
             }
             //设置UA
             if(livesOBJ.has("header")) {
