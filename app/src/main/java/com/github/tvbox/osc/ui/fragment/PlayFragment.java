@@ -632,6 +632,19 @@ public class PlayFragment extends BaseLazyFragment {
             trackInfo = ((IjkMediaPlayer)mediaPlayer).getTrackInfo();
             if (trackInfo != null && trackInfo.getSubtitle().size() > 0) {
                 mController.mSubtitleView.hasInternal = true;
+                mController.mSubtitleView.isInternal = true;
+                //自动选中第一个字幕(优先中文)
+                TrackInfoBean firstSub = trackInfo.getSubtitle().get(0);
+                int subSelIdx = 0;
+                for (int i = 0; i < trackInfo.getSubtitle().size(); i++) {
+                    String lang = trackInfo.getSubtitle().get(i).language != null ? trackInfo.getSubtitle().get(i).language.toLowerCase() : "";
+                    String name = trackInfo.getSubtitle().get(i).name != null ? trackInfo.getSubtitle().get(i).name.toLowerCase() : "";
+                    if (lang.contains("zh") || lang.contains("chi") || name.contains("中文") || name.contains("国语")) {
+                        subSelIdx = i;
+                        break;
+                    }
+                }
+                ((IjkMediaPlayer)mediaPlayer).setTrack(trackInfo.getSubtitle().get(subSelIdx).index);
             }
             //默认选中第一个音轨 一般第一个音轨是国语 && 加载上一次选中的
             ((IjkMediaPlayer)mediaPlayer).loadDefaultTrack(trackInfo,progressKey);
@@ -651,9 +664,28 @@ public class PlayFragment extends BaseLazyFragment {
             ExoPlayer exoPlayer = (ExoPlayer) mediaPlayer;
             //加载上一次选中的
             exoPlayer.loadDefaultTrack(progressKey);
-            //直接用ExoPlayer(应用模块)注册字幕监听(绕过player模块import限制)
+            //直接用ExoPlayer(应用模块)注册字幕监听
             exoPlayer.initSubtitleCueListener();
-            //原有后端字幕监听(通过动态代理)
+            //自动选中第一个字幕轨道(如果有)
+            com.github.tvbox.osc.player.TrackInfo exoInfo = exoPlayer.getTrackInfo();
+            if (exoInfo != null && exoInfo.getSubtitle().size() > 0) {
+                mController.mSubtitleView.hasInternal = true;
+                mController.mSubtitleView.isInternal = true;
+                //优先中文
+                java.util.List<TrackInfoBean> subTracks = exoInfo.getSubtitle();
+                int selIdx = 0;
+                for (int i = 0; i < subTracks.size(); i++) {
+                    String lang = subTracks.get(i).language != null ? subTracks.get(i).language.toLowerCase() : "";
+                    String name = subTracks.get(i).name != null ? subTracks.get(i).name.toLowerCase() : "";
+                    if (lang.contains("zh") || lang.contains("chi") || name.contains("中文") || name.contains("国语")) {
+                        selIdx = i;
+                        break;
+                    }
+                }
+                TrackInfoBean sel = subTracks.get(selIdx);
+                exoPlayer.selectSubtitleTrack(sel.groupIndex, sel.index);
+            }
+            //Exo字幕监听
             exoPlayer.setExoSubtitleListener(text -> {
                 mController.mSubtitleView.hasInternal = true;
                 mController.mSubtitleView.isInternal = true;
