@@ -28,12 +28,12 @@ android {
     productFlavors {
         normal {
             dimension "mode"
-            minSdkVersion 21
+            minSdkVersion 23
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
         python {
             dimension "mode"
-            minSdkVersion 21
+            minSdkVersion 23
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro', 'proguard-python.pro'
         }
     }
