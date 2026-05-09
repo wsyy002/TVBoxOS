@@ -109,7 +109,8 @@ public class Media3ExoPlayer extends AbstractPlayer implements Player.Listener {
                 .setBandwidthMeter(DefaultBandwidthMeter.getSingletonInstance(mAppContext))
                 .build();
 
-        setOptions();
+        // 默认不自动播放——由 DKPlayer VideoView 的 start() 控制
+        mExoPlayer.setPlayWhenReady(false);
 
         // 播放器日志
         if (VideoViewManager.getConfig().mIsEnableLog) {
@@ -246,6 +247,7 @@ public class Media3ExoPlayer extends AbstractPlayer implements Player.Listener {
         }
 
         mIsPreparing = true;
+        mExoPlayer.setPlayWhenReady(false);
         mExoPlayer.prepare();
     }
 
@@ -341,9 +343,6 @@ public class Media3ExoPlayer extends AbstractPlayer implements Player.Listener {
     @Override
     public void setOptions() {
         if (mExoPlayer != null) {
-            // 准备好就开始播放
-            mExoPlayer.setPlayWhenReady(true);
-
             // 直播优化：减少缓冲
             if (mIsLive) {
                 mExoPlayer.setPlaybackParameters(
