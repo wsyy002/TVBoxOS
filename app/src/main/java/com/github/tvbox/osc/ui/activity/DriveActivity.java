@@ -85,8 +85,7 @@ public class DriveActivity extends BaseActivity {
         mGridView.setSpacingWithMargins(AutoSizeUtils.mm2px(mContext, 10), 0);
         mGridView.setAdapter(adapter);
 
-        adapter.bindToRecyclerView(mGridView);
-
+        
         mGridView.setOnItemListener(new TvRecyclerView.OnItemListener() {
             @Override
             public void onItemPreSelected(TvRecyclerView tvRecyclerView, View view, int position) {
@@ -127,8 +126,11 @@ public class DriveActivity extends BaseActivity {
                 }
 
                 if (selectedItem.getDriveData() != null && selectedItem.parentFolder == null) {
-                    // 根级别存储：显示操作菜单（浏览/编辑/删除）
-                    showDriveActionMenu(selectedItem);
+                    // 根级别存储: 如果有remote serv，直接浏览
+                    btnAddServer.setVisibility(View.GONE);
+                    tvTitle.setText(selectedItem.name);
+                    initViewModel(selectedItem);
+                    loadDriveData();
                     return;
                 }
 
