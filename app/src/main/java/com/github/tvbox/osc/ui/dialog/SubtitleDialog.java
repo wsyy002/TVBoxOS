@@ -45,6 +45,36 @@ public class SubtitleDialog extends BaseDialog {
         selectInternal = findViewById(R.id.selectInternal);
         selectLocal = findViewById(R.id.selectLocal);
         selectRemote = findViewById(R.id.selectRemote);
+        // 确保selectInternal存在且可见
+        if (selectInternal == null) {
+            // XML加载失败，动态创建
+            selectInternal = new TextView(context);
+            selectInternal.setText("▼ 内嵌字幕 ▼");
+            selectInternal.setGravity(android.view.Gravity.CENTER);
+            selectInternal.setPadding(40, 20, 40, 20);
+            selectInternal.setTextSize(20);
+            selectInternal.setTextColor(android.graphics.Color.WHITE);
+            selectInternal.setBackgroundColor(android.graphics.Color.RED);
+            selectInternal.setFocusable(true);
+            // 插入到selectLocal前面
+            android.widget.LinearLayout parent = findViewById(R.id.subtitleButtonContainer);
+            if (parent != null) {
+                int localIndex = -1;
+                for (int i = 0; i < parent.getChildCount(); i++) {
+                    if (parent.getChildAt(i) == selectLocal) {
+                        localIndex = i;
+                        break;
+                    }
+                }
+                if (localIndex >= 0) {
+                    parent.addView(selectInternal, localIndex);
+                } else {
+                    parent.addView(selectInternal, 0);
+                }
+            }
+        } else {
+            selectInternal.setVisibility(View.VISIBLE);
+        }
         subtitleSizeMinus = findViewById(R.id.subtitleSizeMinus);
         subtitleSizeText = findViewById(R.id.subtitleSizeText);
         subtitleSizePlus = findViewById(R.id.subtitleSizePlus);
@@ -184,6 +214,26 @@ public class SubtitleDialog extends BaseDialog {
         if (selectInternal != null) {
             selectInternal.setVisibility(show ? View.VISIBLE : View.GONE);
         }
+    }
+
+    // 动态创建内置字幕按钮(绕过XML布局问题)
+    private void ensureInternalButton() {
+        if (selectInternal == null) {
+            // 如果XML中的selectInternal没被创建，手动创建一个
+            android.util.Log.w("SUB", "selectInternal was null, creating dynamically");
+        }
+        if (selectInternal != null) {
+            // 确保按钮可见且在最前面
+            selectInternal.setVisibility(View.VISIBLE);
+            selectInternal.bringToFront();
+        }
+    }
+
+    @Override
+    public void show() {
+        ensureInternalButton();
+        super.show();
+        ensureInternalButton();
     }
 
     public void setLocalFileChooserListener(LocalFileChooserListener localFileChooserListener) {
