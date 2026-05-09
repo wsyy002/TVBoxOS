@@ -117,18 +117,20 @@ public class SMBDriveViewModel extends AbstractDriveViewModel {
                         List<DriveFolderFile> items = new ArrayList<>();
                         if (files != null) {
                             for (SmbFile file : files) {
-                                String rawName = file.getName();
-                                String origName = rawName;
-                                if (rawName == null) continue;
-                                if (rawName.endsWith("/")) rawName = rawName.substring(0, rawName.length() - 1);
-                                int lastSlash = rawName.lastIndexOf("/");
-                                if (lastSlash >= 0) rawName = rawName.substring(lastSlash + 1);
-                                int extIndex = rawName.lastIndexOf(".");
+                                // 使用 URL 提取名称：确保拿到纯净的叶子节点名称，避免 getName() 返回含父目录名
+                                String urlStr = file.getURL().toString();
+                                if (urlStr == null) continue;
+                                // URL 最后是 /path/to/dir/ 或 /path/to/file
+                                if (urlStr.endsWith("/")) urlStr = urlStr.substring(0, urlStr.length() - 1);
+                                int lastSlash = urlStr.lastIndexOf("/");
+                                String name = (lastSlash >= 0) ? urlStr.substring(lastSlash + 1) : urlStr;
+                                if (name == null || name.isEmpty()) continue;
+                                int extIndex = name.lastIndexOf(".");
                                 boolean isDir = file.isDirectory();
-                                android.util.Log.i("SMB_NAMES", "  orig='" + origName + "' -> name='" + rawName + "' isDir=" + isDir);
+                                android.util.Log.i("SMB_NAMES", "  url='" + file.getURL() + "' -> name='" + name + "' isDir=" + isDir);
                                 items.add(new DriveFolderFile(
-                                        currentDriveNote, rawName, file.length(), !isDir,
-                                        !isDir && extIndex >= 0 ? rawName.substring(extIndex + 1) : null,
+                                        currentDriveNote, name, file.length(), !isDir,
+                                        !isDir && extIndex >= 0 ? name.substring(extIndex + 1) : null,
                                         file.lastModified()
                                 ));
                             }

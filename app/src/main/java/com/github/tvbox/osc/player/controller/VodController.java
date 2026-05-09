@@ -168,6 +168,7 @@ public class VodController extends BaseController {
     TextView mPlayLoadNetSpeed;
     TextView mVideoSize;
     public SimpleSubtitleView mSubtitleView;
+    public android.widget.ImageView mSubtitleBitmapView;
     TextView mZimuBtn;
     TextView mAudioTrackBtn;
     public TextView mLandscapePortraitBtn;
@@ -251,6 +252,7 @@ public class VodController extends BaseController {
         mPlayLoadNetSpeed = findViewById(R.id.tv_play_load_net_speed);
         mVideoSize = findViewById(R.id.tv_videosize);
         mSubtitleView = findViewById(R.id.subtitle_view);
+        mSubtitleBitmapView = findViewById(R.id.subtitle_bitmap_view);
         mZimuBtn = findViewById(R.id.zimu_select);
         mAudioTrackBtn = findViewById(R.id.audio_track_select);
         mLandscapePortraitBtn = findViewById(R.id.landscape_portrait);

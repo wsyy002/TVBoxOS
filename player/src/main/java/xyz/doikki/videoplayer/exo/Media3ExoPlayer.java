@@ -64,16 +64,28 @@ public class Media3ExoPlayer extends AbstractPlayer implements Player.Listener {
     protected Context mAppContext;
     protected ExoPlayer mExoPlayer;
     protected SubtitleListener mExoSubtitleListener;
+    protected BitmapSubtitleListener mExoBitmapSubtitleListener;
 
     /**
-     * 字幕回调接口
+     * 文字字幕回调接口
      */
     public interface SubtitleListener {
         void onSubtitleText(String text);
     }
 
+    /**
+     * 图形字幕回调接口（PGS/TIMEDTEXT 位图）
+     */
+    public interface BitmapSubtitleListener {
+        void onSubtitleBitmap(android.graphics.Bitmap bitmap);
+    }
+
     public void setExoSubtitleListener(SubtitleListener listener) {
         mExoSubtitleListener = listener;
+    }
+
+    public void setExoBitmapSubtitleListener(BitmapSubtitleListener listener) {
+        mExoBitmapSubtitleListener = listener;
     }
 
     protected MediaSource mMediaSource;

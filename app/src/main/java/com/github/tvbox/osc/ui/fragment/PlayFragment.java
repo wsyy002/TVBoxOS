@@ -693,11 +693,33 @@ public class PlayFragment extends BaseLazyFragment {
             exoPlayer.initSubtitleCueListener();
             //Exo字幕监听
             exoPlayer.setExoSubtitleListener(text -> {
+                // 文字字幕
+                if (mController.mSubtitleBitmapView != null) {
+                    mController.mSubtitleBitmapView.setVisibility(android.view.View.GONE);
+                }
                 mController.mSubtitleView.hasInternal = true;
                 mController.mSubtitleView.isInternal = true;
-                // 设置字幕文本到SimpleSubtitleView
-                mController.mSubtitleView.setText(text);
-                mController.mSubtitleView.setVisibility(android.view.View.VISIBLE);
+                if (text == null || text.isEmpty()) {
+                    mController.mSubtitleView.setText("");
+                    mController.mSubtitleView.setVisibility(android.view.View.GONE);
+                } else {
+                    mController.mSubtitleView.setText(text);
+                    mController.mSubtitleView.setVisibility(android.view.View.VISIBLE);
+                }
+            });
+            // PGS图形字幕监听
+            exoPlayer.setExoBitmapSubtitleListener(bmp -> {
+                if (mController.mSubtitleBitmapView == null) return;
+                mController.mSubtitleView.hasInternal = true;
+                mController.mSubtitleView.isInternal = true;
+                if (bmp == null) {
+                    mController.mSubtitleBitmapView.setVisibility(android.view.View.GONE);
+                } else {
+                    mController.mSubtitleView.setVisibility(android.view.View.GONE);
+                    mController.mSubtitleView.setText("");
+                    mController.mSubtitleBitmapView.setImageBitmap(bmp);
+                    mController.mSubtitleBitmapView.setVisibility(android.view.View.VISIBLE);
+                }
             });
 
             // 尝试立即获取轨道（已准备就绪时直接选中）

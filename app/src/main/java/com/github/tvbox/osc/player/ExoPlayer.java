@@ -255,71 +255,35 @@ public class ExoPlayer extends Media3ExoPlayer {
                 @Override
                 public void onCues(@NonNull java.util.List<Cue> cues) {
                     if (cues == null || cues.isEmpty()) {
-                        android.util.Log.d("SubCue", "onCues: null/empty");
+                        // 空cue清除图形字幕
+                        if (mExoBitmapSubtitleListener != null) {
+                            mExoBitmapSubtitleListener.onSubtitleBitmap(null);
+                        }
                         return;
                     }
-                    // 调试：打印第一个Cue的所有字段
-                    if (!cues.isEmpty()) {
-                        Cue first = cues.get(0);
-                        StringBuilder fieldDump = new StringBuilder();
-                        try {
-                            // 所有声明字段（包括私有）
-                            for (java.lang.reflect.Field f : first.getClass().getDeclaredFields()) {
-                                f.setAccessible(true);
-                                Object val = f.get(first);
-                                fieldDump.append(f.getName()).append("=").append(val)
-                                        .append("(").append(val != null ? val.getClass().getSimpleName() : "null").append(") ");
-                            }
-                        } catch (Exception ignored) {}
-                        android.util.Log.d("SubCue", "Cue class=" + first.getClass().getName()
-                                + " fields: " + fieldDump.toString());
-                        // 也检查是否包含bitmap
-                        try {
-                            java.lang.reflect.Field bf = first.getClass().getField("bitmap");
-                            Object bv = bf.get(first);
-                            if (bv != null) {
-                                android.util.Log.d("SubCue", "Cue HAS BITMAP! size=" + bv.toString());
-                            }
-                        } catch (Exception ignored) {}
-                    }
+                    boolean hasBitmap = false;
                     StringBuilder sb = new StringBuilder();
                     for (Cue cue : cues) {
+                        // 优先检查bitmap（PGS图形字幕）
+                        android.graphics.Bitmap bmp = null;
+                        try {
+                            java.lang.reflect.Field bf = cue.getClass().getField("bitmap");
+                            bmp = (android.graphics.Bitmap) bf.get(cue);
+                        } catch (Exception ignored) {}
+                        if (bmp != null) {
+                            hasBitmap = true;
+                            if (mExoBitmapSubtitleListener != null) {
+                                mExoBitmapSubtitleListener.onSubtitleBitmap(bmp);
+                            }
+                            continue;
+                        }
+                        // 文字字幕
                         CharSequence textContent = cue.text;
                         if (textContent == null || textContent.length() == 0) {
-                            // 1. getText() method (Media3 newer API)
                             try {
                                 java.lang.reflect.Method m = cue.getClass().getMethod("getText");
                                 Object r = m.invoke(cue);
                                 if (r instanceof CharSequence) textContent = (CharSequence) r;
-                            } catch (Exception ignored) {}
-                        }
-                        if (textContent == null || textContent.length() == 0) {
-                            // 2. try all public CharSequence fields
-                            try {
-                                for (java.lang.reflect.Field f : cue.getClass().getFields()) {
-                                    if (CharSequence.class.isAssignableFrom(f.getType())) {
-                                        Object v = f.get(cue);
-                                        if (v instanceof CharSequence && ((CharSequence) v).length() > 0) {
-                                            textContent = (CharSequence) v;
-                                            break;
-                                        }
-                                    }
-                                }
-                            } catch (Exception ignored) {}
-                        }
-                        if (textContent == null || textContent.length() == 0) {
-                            // 3. try all declared (including private) CharSequence fields
-                            try {
-                                for (java.lang.reflect.Field f : cue.getClass().getDeclaredFields()) {
-                                    f.setAccessible(true);
-                                    if (CharSequence.class.isAssignableFrom(f.getType())) {
-                                        Object v = f.get(cue);
-                                        if (v instanceof CharSequence && ((CharSequence) v).length() > 0) {
-                                            textContent = (CharSequence) v;
-                                            break;
-                                        }
-                                    }
-                                }
                             } catch (Exception ignored) {}
                         }
                         if (textContent != null && textContent.length() > 0) {
@@ -327,10 +291,11 @@ public class ExoPlayer extends Media3ExoPlayer {
                             sb.append(textContent);
                         }
                     }
+                    if (hasBitmap) return; // 图形字幕已处理
                     final String text = sb.toString();
-                    android.util.Log.d("SubCue", "onCues: extracted='" + text + "' cues=" + cues.size() + " listener=" + (mExoSubtitleListener != null));
-                    if (!text.isEmpty() && mExoSubtitleListener != null) {
-                        mExoSubtitleListener.onSubtitleText(text);
+                    android.util.Log.d("SubCue", "onCues: text='" + text + "' listener=" + (mExoSubtitleListener != null));
+                    if (mExoSubtitleListener != null) {
+                        mExoSubtitleListener.onSubtitleText(text.isEmpty() ? null : text);
                     }
                 }
             });
