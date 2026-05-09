@@ -635,7 +635,9 @@ public class PlayFragment extends BaseLazyFragment {
             ExoPlayer exoPlayer = (ExoPlayer) mediaPlayer;
             //加载上一次选中的
             exoPlayer.loadDefaultTrack(progressKey);
-            //Exo内置字幕监听
+            //直接用ExoPlayer(应用模块)注册字幕监听(绕过player模块import限制)
+            exoPlayer.initSubtitleCueListener();
+            //原有后端字幕监听(通过动态代理)
             exoPlayer.setExoSubtitleListener(text -> {
                 mController.mSubtitleView.hasInternal = true;
                 mController.mSubtitleView.isInternal = true;
