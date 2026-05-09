@@ -496,3 +496,74 @@ public class Media3ExoPlayer extends AbstractPlayer implements Player.Listener {
 
 
 }
+
+    /**
+     * 通过动态代理添加字幕监听器，避免直接引用 Media3 的 Cue 类（编译依赖问题）
+     */
+    private void setupSubtitleListener() {
+        try {
+            Class<?> playerClass = Class.forName("androidx.media3.common.Player");
+            Class<?> listenerIface = null;
+            for (Class<?> cls : playerClass.getDeclaredClasses()) {
+                if ("Listener".equals(cls.getSimpleName())) {
+                    listenerIface = cls;
+                    break;
+                }
+            }
+            if (listenerIface == null) return;
+
+            // 使用动态代理创建 Player.Listener 实例，只拦截 onCues 方法
+            Object proxy = java.lang.reflect.Proxy.newProxyInstance(
+                    listenerIface.getClassLoader(),
+                    new Class<?>[]{listenerIface},
+                    (obj, method, args) -> {
+                        if ("onCues".equals(method.getName()) && args != null
+                                && args.length > 0 && args[0] instanceof java.util.List) {
+                            handleSubtitleCues((java.util.List<?>) args[0]);
+                        }
+                        // 其他方法走默认实现
+                        return null;
+                    }
+            );
+
+            // 通过反射调用 ExoPlayer.addListener
+            mExoPlayer.getClass()
+                    .getMethod("addListener", listenerIface)
+                    .invoke(mExoPlayer, proxy);
+
+            Log.i(TAG, "Subtitle listener registered via dynamic proxy");
+        } catch (Exception e) {
+            Log.w(TAG, "Subtitle listener not available: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 处理字幕 cues，通过反射提取 Cue.text
+     */
+    private void handleSubtitleCues(java.util.List<?> cues) {
+        if (cues == null || cues.isEmpty()) return;
+
+        StringBuilder sb = new StringBuilder();
+        for (Object cueObj : cues) {
+            try {
+                // Media3 Cue.text 字段
+                java.lang.reflect.Field textField = cueObj.getClass().getField("text");
+                Object textVal = textField.get(cueObj);
+                if (textVal instanceof CharSequence) {
+                    String text = textVal.toString();
+                    if (!text.isEmpty()) {
+                        if (sb.length() > 0) sb.append("\n");
+                        sb.append(text);
+                    }
+                }
+            } catch (Exception ignored) {}
+        }
+
+        final String subtitleText = sb.toString();
+        if (subtitleText.isEmpty()) return;
+
+        // 通知外部监听器
+        if (mExoSubtitleListener != null) {
+            mExoSubtitleListener.onSubtitleText(subtitleText);
+        }
+    }
