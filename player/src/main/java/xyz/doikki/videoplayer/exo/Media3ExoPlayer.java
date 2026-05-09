@@ -46,7 +46,7 @@ import java.util.Map;
 import xyz.doikki.videoplayer.player.AbstractPlayer;
 import xyz.doikki.videoplayer.player.VideoViewManager;
 import xyz.doikki.videoplayer.util.PlayerUtils;
-import androidx.media3.common.text.Cue;
+import androidx.media3.common.Cue;
 import android.os.Handler;
 import android.os.Looper;
 
@@ -78,6 +78,8 @@ public class Media3ExoPlayer extends AbstractPlayer implements Player.Listener {
     protected DefaultTrackSelector mTrackSelector;
 
     protected String currentPlayPath;
+    private android.widget.TextView mSubtitleOutput;
+    private String mLastSubtitleText = "";
 
     public Media3ExoPlayer(Context context) {
         mAppContext = context.getApplicationContext();
