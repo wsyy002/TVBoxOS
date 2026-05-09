@@ -495,7 +495,6 @@ public class Media3ExoPlayer extends AbstractPlayer implements Player.Listener {
 
 
 
-}
 
     /**
      * 通过动态代理添加字幕监听器，避免直接引用 Media3 的 Cue 类（编译依赖问题）
@@ -567,3 +566,4 @@ public class Media3ExoPlayer extends AbstractPlayer implements Player.Listener {
             mExoSubtitleListener.onSubtitleText(subtitleText);
         }
     }
+}
