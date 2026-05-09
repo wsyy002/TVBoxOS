@@ -19,6 +19,15 @@ import com.github.tvbox.osc.util.StorageDriveType;
 public class DriveAdapter extends BaseQuickAdapter<DriveFolderFile, BaseViewHolder> {
 
     private boolean delMode = false;
+    private OnItemClickListener mOnItemClickListener;
+
+    public interface OnItemClickListener {
+        void onItemClick(DriveFolderFile item, int position);
+    }
+
+    public void setOnItemClickListener(OnItemClickListener listener) {
+        mOnItemClickListener = listener;
+    }
 
     public DriveAdapter() {
         super(R.layout.item_drive_file);
@@ -35,6 +44,14 @@ public class DriveAdapter extends BaseQuickAdapter<DriveFolderFile, BaseViewHold
         TextView tvName = helper.getView(R.id.tvName);
         TextView tvInfo = helper.getView(R.id.tvInfo);
         FrameLayout delFrame = helper.getView(R.id.delFrameLayout);
+
+        // 给每个itemView设置点击监听（TvRecyclerView OnItemListener可能在某些设备不触发）
+        final int pos = helper.getAdapterPosition();
+        helper.itemView.setOnClickListener(v -> {
+            if (mOnItemClickListener != null) {
+                mOnItemClickListener.onItemClick(item, pos);
+            }
+        });
 
         if (item.parentFolder == item || (item.name == null && item.parentFolder == null)) {
             ivIcon.setImageResource(R.drawable.ic_folder_back);

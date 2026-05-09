@@ -85,7 +85,9 @@ public class DriveActivity extends BaseActivity {
         mGridView.setSpacingWithMargins(AutoSizeUtils.mm2px(mContext, 10), 0);
         mGridView.setAdapter(adapter);
 
-        
+        // 通过adapter设置item点击（比TvRecyclerView OnItemListener更可靠）
+        adapter.setOnItemClickListener((item, position) -> onDriveItemClicked(item));
+
         mGridView.setOnItemListener(new TvRecyclerView.OnItemListener() {
             @Override
             public void onItemPreSelected(TvRecyclerView tvRecyclerView, View view, int position) {
@@ -97,55 +99,12 @@ public class DriveActivity extends BaseActivity {
             public void onItemSelected(TvRecyclerView tvRecyclerView, View view, int position) {
                 if (position >= 0 && position < adapter.getData().size())
                     adapter.getData().get(position).isSelected = true;
-                // 更新背景/焦点状态
             }
 
             @Override
             public void onItemClick(TvRecyclerView parent, View itemView, int position) {
                 if (position >= adapter.getData().size()) return;
-                DriveFolderFile selectedItem = adapter.getItem(position);
-
-                if (delMode) {
-                    if (selectedItem.getDriveData() != null) {
-                        RoomDataManger.deleteDrive(selectedItem.getDriveData().id);
-                        EventBus.getDefault().post(new RefreshEvent(RefreshEvent.TYPE_DRIVE_REFRESH));
-                        delMode = false;
-                        adapter.toggleDelMode(false);
-                    }
-                    return;
-                }
-
-                android.util.Log.i("DRIVE_CLICK", "Clicked: name=" + selectedItem.name
-                        + " driveData=" + (selectedItem.getDriveData() != null ? selectedItem.getDriveData().id : "null")
-                        + " parentFolder=" + (selectedItem.parentFolder != null ? "non-null" : "null")
-                        + " viewModel=" + (viewModel != null ? "exists" : "null"));
-
-                if (selectedItem.parentFolder != null && selectedItem.name == null) {
-                    goBack();
-                    return;
-                }
-
-                if (selectedItem.getDriveData() != null && selectedItem.parentFolder == null) {
-                    // 根级别存储: 展示操作菜单（浏览/编辑/删除），不再直接进入
-                    showDriveActionMenu(selectedItem);
-                    return;
-                }
-
-                if (viewModel == null) {
-                    initViewModel(selectedItem);
-                    if (!selectedItem.isFile) {
-                        btnAddServer.setVisibility(View.GONE);
-                        loadDriveData();
-                        return;
-                    }
-                }
-
-                if (!selectedItem.isFile) {
-                    viewModel.setCurrentDriveNote(selectedItem);
-                    loadDriveData();
-                } else {
-                    playFile(selectedItem);
-                }
+                onDriveItemClicked(adapter.getItem(position));
             }
         });
 
@@ -219,6 +178,55 @@ public class DriveActivity extends BaseActivity {
     /**
      * 根级别存储操作菜单：浏览 / 编辑 / 删除
      */
+    /**
+     * 统一处理Drive列表item点击
+     */
+    private void onDriveItemClicked(DriveFolderFile selectedItem) {
+        if (selectedItem == null) return;
+
+        if (delMode) {
+            if (selectedItem.getDriveData() != null) {
+                RoomDataManger.deleteDrive(selectedItem.getDriveData().id);
+                EventBus.getDefault().post(new RefreshEvent(RefreshEvent.TYPE_DRIVE_REFRESH));
+                delMode = false;
+                adapter.toggleDelMode(false);
+            }
+            return;
+        }
+
+        android.util.Log.i("DRIVE_CLICK", "Clicked: name=" + selectedItem.name
+                + " driveData=" + (selectedItem.getDriveData() != null ? selectedItem.getDriveData().id : "null")
+                + " parentFolder=" + (selectedItem.parentFolder != null ? "non-null" : "null")
+                + " viewModel=" + (viewModel != null ? "exists" : "null"));
+
+        if (selectedItem.parentFolder != null && selectedItem.name == null) {
+            goBack();
+            return;
+        }
+
+        if (selectedItem.getDriveData() != null && selectedItem.parentFolder == null) {
+            // 根级别存储: 展示操作菜单（浏览/编辑/删除）
+            showDriveActionMenu(selectedItem);
+            return;
+        }
+
+        if (viewModel == null) {
+            initViewModel(selectedItem);
+            if (!selectedItem.isFile) {
+                btnAddServer.setVisibility(View.GONE);
+                loadDriveData();
+                return;
+            }
+        }
+
+        if (!selectedItem.isFile) {
+            viewModel.setCurrentDriveNote(selectedItem);
+            loadDriveData();
+        } else {
+            playFile(selectedItem);
+        }
+    }
+
     private void showDriveActionMenu(DriveFolderFile item) {
         String[] actions = new String[]{"浏览文件", "编辑配置", "删除"};
         SelectDialog<String> dialog = new SelectDialog<>(this);

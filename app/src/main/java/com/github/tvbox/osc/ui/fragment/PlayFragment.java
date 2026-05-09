@@ -730,10 +730,24 @@ public class PlayFragment extends BaseLazyFragment {
                 }
             });
 
-            // 延迟再试一次（适用于初始轨道加载较慢的情况，如部分HLS/流媒体）
-            new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
-                trySelectExoSubtitleTrack(exoPlayer);
-            }, 2000);
+            // 轮询重试字幕轨道选择（高码率4K/恢复播放时轨道可能加载较慢，最多试15秒）
+            final int[] retryCount = {0};
+            android.os.Handler retryHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+            Runnable retryRunnable = new Runnable() {
+                @Override
+                public void run() {
+                    if (!isAdded()) return;
+                    if (mController == null || mController.mSubtitleView == null) return;
+                    if (mController.mSubtitleView.hasInternal) return; // 已选中
+                    trySelectExoSubtitleTrack(exoPlayer);
+                    if (mController.mSubtitleView.hasInternal) return; // 选中成功
+                    retryCount[0]++;
+                    if (retryCount[0] < 15) {
+                        retryHandler.postDelayed(this, 1000);
+                    }
+                }
+            };
+            retryHandler.postDelayed(retryRunnable, 1000);
         }
         mController.mSubtitleView.bindToMediaPlayer(mVideoView.getMediaPlayer());
         mController.mSubtitleView.setPlaySubtitleCacheKey(subtitleCacheKey);
