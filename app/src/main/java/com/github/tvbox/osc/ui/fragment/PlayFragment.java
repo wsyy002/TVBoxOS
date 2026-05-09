@@ -294,7 +294,7 @@ public class PlayFragment extends BaseLazyFragment {
     void selectMySubtitle() throws Exception {
         SubtitleDialog subtitleDialog = new SubtitleDialog(getActivity());
         int playerType = mVodPlayerCfg.getInt("pl");
-        if (mController.mSubtitleView.hasInternal && playerType == 1) {
+        if (mController.mSubtitleView.hasInternal && (playerType == 1 || playerType == 2)) {
             subtitleDialog.selectInternal.setVisibility(View.VISIBLE);
         } else {
             subtitleDialog.selectInternal.setVisibility(View.GONE);
