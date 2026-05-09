@@ -82,6 +82,10 @@ public class ExoPlayer extends Media3ExoPlayer {
                             String formatInfo = "";
                             if (fmt.sampleMimeType != null) {
                                 formatInfo = formatSubtitleMime(fmt.sampleMimeType);
+                                // 对于 application/x-media3-cues（Media3内部统一类型），用 onCues 实际判断的格式名
+                                if ("application/x-media3-cues".equals(fmt.sampleMimeType)) {
+                                    formatInfo = getSubtitleFormatName();
+                                }
                             }
                             if (!formatInfo.isEmpty()) {
                                 bean.name = (bean.language.isEmpty() ? "未知" : bean.language) + " (" + formatInfo + ")";
@@ -272,6 +276,7 @@ public class ExoPlayer extends Media3ExoPlayer {
                         } catch (Exception ignored) {}
                         if (bmp != null) {
                             hasBitmap = true;
+                            subtitleIsBitmap = true;  // 确认是 PGS 图形字幕
                             if (mExoBitmapSubtitleListener != null) {
                                 mExoBitmapSubtitleListener.onSubtitleBitmap(bmp);
                             }
@@ -315,9 +320,10 @@ public class ExoPlayer extends Media3ExoPlayer {
 
     private String formatSubtitleMime(String mime) {
         if (mime == null) return "";
-        // 显示实际原始格式名称
         switch (mime) {
-            case "application/x-media3-cues": return "TIMEDTEXT";
+            // Media3 1.9.2 将所有内置字幕轨道的 MIME 统一为 application/x-media3-cues
+            // 此时只能通过 onCues 收到的 Cue 对象判断实际格式（text vs bitmap）
+            case "application/x-media3-cues": return "TIMEDTEXT/PGS";
             case "text/vtt": return "WebVTT";
             case "application/x-subrip": return "SRT";
             case "text/x-ssa": return "ASS";
@@ -329,5 +335,18 @@ public class ExoPlayer extends Media3ExoPlayer {
                 int slash = mime.lastIndexOf('/');
                 return slash >= 0 ? mime.substring(slash + 1).toUpperCase() : mime.toUpperCase();
         }
+    }
+
+    /**
+     * 字幕轨道实际类型（onCues 收到后动态判断），null=未知
+     */
+    private Boolean subtitleIsBitmap = null;
+
+    /**
+     * 返回字幕类型友好名称
+     */
+    public String getSubtitleFormatName() {
+        if (subtitleIsBitmap == null) return "内置字幕";
+        return subtitleIsBitmap ? "PGS" : "TIMEDTEXT";
     }
 }
