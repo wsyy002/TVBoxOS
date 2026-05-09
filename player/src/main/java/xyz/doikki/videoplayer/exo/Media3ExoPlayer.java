@@ -378,7 +378,6 @@ public class Media3ExoPlayer extends AbstractPlayer implements Player.Listener {
                 );
             }
 
-        }
     }
 
     @Override
@@ -566,7 +565,6 @@ public class Media3ExoPlayer extends AbstractPlayer implements Player.Listener {
             mExoSubtitleListener.onSubtitleText(subtitleText);
         }
     }
-}
 
     /**
      * 检查当前播放媒体是否包含字幕轨道
@@ -586,3 +584,4 @@ public class Media3ExoPlayer extends AbstractPlayer implements Player.Listener {
         }
         return false;
     }
+}
