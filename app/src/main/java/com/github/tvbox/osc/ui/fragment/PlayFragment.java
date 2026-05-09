@@ -638,6 +638,7 @@ public class PlayFragment extends BaseLazyFragment {
                 // 直接设置文本并显示(绕过SubtitleEngine)
                 mController.mSubtitleView.setText(text);
                 mController.mSubtitleView.setVisibility(android.view.View.VISIBLE);
+                android.widget.Toast.makeText(getActivity(), "字幕: " + text, android.widget.Toast.LENGTH_SHORT).show();
             });
         }
         mController.mSubtitleView.bindToMediaPlayer(mVideoView.getMediaPlayer());
