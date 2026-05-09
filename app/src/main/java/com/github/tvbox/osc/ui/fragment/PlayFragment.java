@@ -707,8 +707,8 @@ public class PlayFragment extends BaseLazyFragment {
                     mController.mSubtitleView.setVisibility(android.view.View.VISIBLE);
                 }
             });
-            // PGS图形字幕监听
-            exoPlayer.setExoBitmapSubtitleListener(bmp -> {
+            // PGS图形字幕监听（含位置/大小参数）
+            exoPlayer.setExoBitmapSubtitleListener((bmp, line, position, size) -> {
                 if (mController.mSubtitleBitmapView == null) return;
                 mController.mSubtitleView.hasInternal = true;
                 mController.mSubtitleView.isInternal = true;
@@ -718,6 +718,33 @@ public class PlayFragment extends BaseLazyFragment {
                     mController.mSubtitleView.setVisibility(android.view.View.GONE);
                     mController.mSubtitleView.setText("");
                     mController.mSubtitleBitmapView.setImageBitmap(bmp);
+                    // 根据 Cue 的定位参数调整 ImageView 位置
+                    android.view.ViewGroup.MarginLayoutParams lp =
+                            (android.view.ViewGroup.MarginLayoutParams)
+                                    mController.mSubtitleBitmapView.getLayoutParams();
+                    if (lp != null) {
+                        android.graphics.Rect display = new android.graphics.Rect();
+                        mController.mSubtitleBitmapView.getWindowVisibleDisplayFrame(display);
+                        int w = display.width();
+                        int h = display.height();
+                        if (position > 0 && size > 0) {
+                            // position=水平起始位置分数, size=宽度占比(0~1)
+                            int bmpW = (int)(w * size);
+                            int bmpX = (int)(w * position);
+                            lp.width = bmpW;
+                            lp.height = android.view.ViewGroup.MarginLayoutParams.WRAP_CONTENT;
+                            lp.leftMargin = bmpX;
+                            lp.rightMargin = 0;
+                        }
+                        if (line > 0) {
+                            // line=垂直位置(0~1)，lineType=0表示分数
+                            // lineAnchor=0(start)表示顶部对齐
+                            int bmpY = (int)(h * line);
+                            lp.topMargin = bmpY;
+                            lp.bottomMargin = 0;
+                        }
+                        mController.mSubtitleBitmapView.setLayoutParams(lp);
+                    }
                     mController.mSubtitleBitmapView.setVisibility(android.view.View.VISIBLE);
                 }
             });

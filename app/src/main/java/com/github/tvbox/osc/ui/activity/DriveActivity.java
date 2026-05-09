@@ -541,7 +541,7 @@ public class DriveActivity extends BaseActivity {
                 + viewModel.getCurrentDriveNote().name + "/" + file.name;
 
         if (file.getDriveType() == StorageDriveType.TYPE.LOCAL) {
-            playUrl = driveUrl + pathSuffix;
+            playUrl = "file://" + driveUrl + pathSuffix;
         } else if (file.getDriveType() == StorageDriveType.TYPE.WEBDAV) {
             playUrl = driveUrl + "/" + pathSuffix;
             playUrl = com.github.tvbox.osc.util.LocalProxyServer.getInstance().proxyUrl(playUrl);

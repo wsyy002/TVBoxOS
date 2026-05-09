@@ -31,6 +31,12 @@ public class LocalProxyServer extends NanoHTTPD {
     public static synchronized LocalProxyServer getInstance() {
         if (instance == null) {
             instance = new LocalProxyServer();
+            try {
+                instance.start();
+                Log.i(TAG, "Proxy server started on port " + PORT);
+            } catch (Exception e) {
+                Log.e(TAG, "Failed to start proxy server", e);
+            }
         }
         return instance;
     }

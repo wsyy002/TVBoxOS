@@ -261,7 +261,7 @@ public class ExoPlayer extends Media3ExoPlayer {
                     if (cues == null || cues.isEmpty()) {
                         // 空cue清除图形字幕
                         if (mExoBitmapSubtitleListener != null) {
-                            mExoBitmapSubtitleListener.onSubtitleBitmap(null);
+                            mExoBitmapSubtitleListener.onSubtitleBitmap(null, -1f, -1f, -1f);
                         }
                         return;
                     }
@@ -278,7 +278,17 @@ public class ExoPlayer extends Media3ExoPlayer {
                             hasBitmap = true;
                             subtitleIsBitmap = true;  // 确认是 PGS 图形字幕
                             if (mExoBitmapSubtitleListener != null) {
-                                mExoBitmapSubtitleListener.onSubtitleBitmap(bmp);
+                                // 从 Cue 反射读取 position/line/size 用于正确放置
+                                float line = -1f, position = -1f, size = -1f;
+                                try {
+                                    java.lang.reflect.Field lineF = cue.getClass().getField("line");
+                                    java.lang.reflect.Field posF = cue.getClass().getField("position");
+                                    java.lang.reflect.Field sizeF = cue.getClass().getField("size");
+                                    line = lineF.getFloat(cue);
+                                    position = posF.getFloat(cue);
+                                    size = sizeF.getFloat(cue);
+                                } catch (Exception ignored) {}
+                                mExoBitmapSubtitleListener.onSubtitleBitmap(bmp, line, position, size);
                             }
                             continue;
                         }

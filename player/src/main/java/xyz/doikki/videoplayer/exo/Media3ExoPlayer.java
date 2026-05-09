@@ -77,7 +77,13 @@ public class Media3ExoPlayer extends AbstractPlayer implements Player.Listener {
      * 图形字幕回调接口（PGS/TIMEDTEXT 位图）
      */
     public interface BitmapSubtitleListener {
-        void onSubtitleBitmap(android.graphics.Bitmap bitmap);
+        /**
+         * @param bitmap 字幕位图，null=清除
+         * @param line 垂直位置（0~1分数），-1=未知
+         * @param position 水平位置（0~1分数），-1=未知
+         * @param size 图形宽度占比（0~1），-1=未知
+         */
+        void onSubtitleBitmap(android.graphics.Bitmap bitmap, float line, float position, float size);
     }
 
     public void setExoSubtitleListener(SubtitleListener listener) {
