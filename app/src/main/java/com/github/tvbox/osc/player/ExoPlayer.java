@@ -13,11 +13,12 @@ import com.github.tvbox.osc.util.AudioTrackMemory;
 import com.github.tvbox.osc.util.LOG;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import androidx.annotation.NonNull;
+import androidx.media3.common.text.Cue;
 
 import xyz.doikki.videoplayer.exo.Media3ExoPlayer;
-import androidx.media3.common.text.Cue;
-import java.util.List;
 
 public class ExoPlayer extends Media3ExoPlayer {
 
@@ -26,30 +27,6 @@ public class ExoPlayer extends Media3ExoPlayer {
     public ExoPlayer(Context context) {
         super(context);
         memory = AudioTrackMemory.getInstance(context);
-    }
-    
-    private void addSubtitleListener() {
-        try {
-            mExoPlayer.addListener(new androidx.media3.common.Player.Listener() {
-                @Override
-                public void onCues(@NonNull List<Cue> cues) {
-                    if (cues == null || cues.isEmpty()) return;
-                    StringBuilder sb = new StringBuilder();
-                    for (Cue cue : cues) {
-                        if (cue.text != null && cue.text.length() > 0) {
-                            if (sb.length() > 0) sb.append("\n");
-                            sb.append(cue.text);
-                        }
-                    }
-                    final String text = sb.toString();
-                    if (!text.isEmpty() && mExoSubtitleListener != null) {
-                        mExoSubtitleListener.onSubtitleText(text);
-                    }
-                }
-            });
-        } catch (Exception e) {
-            android.util.Log.e("ExoPlayer", "addSubtitleListener failed", e);
-        }
     }
 
     /**
@@ -228,34 +205,6 @@ public class ExoPlayer extends Media3ExoPlayer {
         return String.join(", ", channelLabel, codec);
     }
     /**
-     * 初始化字幕监听（必须在mExoPlayer创建后调用）
-     */
-    public void initSubtitleCueListener() {
-        if (mExoPlayer == null) return;
-        try {
-            mExoPlayer.addListener(new androidx.media3.common.Player.Listener() {
-                @Override
-                public void onCues(@NonNull java.util.List<Cue> cues) {
-                    if (cues == null || cues.isEmpty()) return;
-                    StringBuilder sb = new StringBuilder();
-                    for (Cue cue : cues) {
-                        if (cue.text != null && cue.text.length() > 0) {
-                            if (sb.length() > 0) sb.append("\n");
-                            sb.append(cue.text);
-                        }
-                    }
-                    final String text = sb.toString();
-                    if (!text.isEmpty() && mExoSubtitleListener != null) {
-                        mExoSubtitleListener.onSubtitleText(text);
-                    }
-                }
-            });
-        } catch (Exception e) {
-            android.util.Log.e("ExoPlayer", "initSubtitleCueListener failed", e);
-        }
-    }
-
-    /**
      * 选择字幕轨道（通过Media3的TrackSelector）
      */
     public void selectSubtitleTrack(int groupIndex, int trackIndex) {
@@ -283,6 +232,34 @@ public class ExoPlayer extends Media3ExoPlayer {
             mTrackSelector.setParameters(builder.build());
         } catch (Exception e) {
             LOG.i("selectSubtitleTrack error: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 初始化Exo字幕监听(onCues)
+     */
+    public void initSubtitleCueListener() {
+        if (mExoPlayer == null) return;
+        try {
+            mExoPlayer.addListener(new androidx.media3.common.Player.Listener() {
+                @Override
+                public void onCues(@NonNull java.util.List<Cue> cues) {
+                    if (cues == null || cues.isEmpty()) return;
+                    StringBuilder sb = new StringBuilder();
+                    for (Cue cue : cues) {
+                        if (cue.text != null && cue.text.length() > 0) {
+                            if (sb.length() > 0) sb.append("\n");
+                            sb.append(cue.text);
+                        }
+                    }
+                    final String text = sb.toString();
+                    if (!text.isEmpty() && mExoSubtitleListener != null) {
+                        mExoSubtitleListener.onSubtitleText(text);
+                    }
+                }
+            });
+        } catch (Exception e) {
+            android.util.Log.e("ExoPlayer", "initSubtitleCueListener failed", e);
         }
     }
 }
