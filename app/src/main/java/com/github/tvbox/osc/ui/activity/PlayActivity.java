@@ -277,15 +277,9 @@ public class PlayActivity extends BaseActivity {
     void selectMySubtitle() throws Exception {
         SubtitleDialog subtitleDialog = new SubtitleDialog(PlayActivity.this);
         int playerType = mVodPlayerCfg.getInt("pl");
-        // Exo始终显示内置字幕按钮(字幕数据在onCues回调中到达)
-        if (playerType == 2) {
-            mController.mSubtitleView.hasInternal = true;
-        }
-        if (mController.mSubtitleView.hasInternal && (playerType == 1 || playerType == 2)) {
-            subtitleDialog.selectInternal.setVisibility(View.VISIBLE);
-        } else {
-            subtitleDialog.selectInternal.setVisibility(View.GONE);
-        }
+        // 显示内置字幕按钮(Exo/IJK都显示)
+        mController.mSubtitleView.hasInternal = true;
+        subtitleDialog.selectInternal.setVisibility(View.VISIBLE);
         subtitleDialog.setSubtitleViewListener(new SubtitleDialog.SubtitleViewListener() {
             @Override
             public void setTextSize(int size) {
