@@ -69,7 +69,8 @@ public class LocalProxyServer extends NanoHTTPD {
                         java.lang.reflect.Constructor<?> authCtor = authClass.getConstructor(ctxClass, String.class, String.class, String.class);
                         String dom = (domain != null && !domain.isEmpty()) ? domain : "WORKGROUP";
                         Object auth = authCtor.newInstance(baseCtx, dom, username, password);
-                        java.lang.reflect.Method withCreds = ctxClass.getMethod("withCredentials", authClass);
+                        Class<?> credsClass = Class.forName("jcifs.Credentials");
+                        java.lang.reflect.Method withCreds = ctxClass.getMethod("withCredentials", credsClass);
                         baseCtx = withCreds.invoke(baseCtx, auth);
                     }
 
