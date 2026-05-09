@@ -46,9 +46,6 @@ import java.util.Map;
 import xyz.doikki.videoplayer.player.AbstractPlayer;
 import xyz.doikki.videoplayer.player.VideoViewManager;
 import xyz.doikki.videoplayer.util.PlayerUtils;
-import androidx.media3.common.Cue;
-import android.os.Handler;
-import android.os.Looper;
 
 /**
  * Media3 版 ExoPlayer 播放器
@@ -484,27 +481,33 @@ public class Media3ExoPlayer extends AbstractPlayer implements Player.Listener {
     }
 
     @Override
-    public void onCues(@NonNull java.util.List<Cue> cues) {
+    public void onCues(@NonNull java.util.List<?> cues) {
         if (cues == null || cues.isEmpty()) return;
-        // 提取字幕文本
+        // 提取字幕文本 (Media3 Cue.text)
         StringBuilder sb = new StringBuilder();
-        for (Cue cue : cues) {
-            if (cue.text != null && !cue.text.isEmpty()) {
-                if (sb.length() > 0) sb.append("\n");
-                sb.append(cue.text);
-            }
+        for (Object cueObj : cues) {
+            try {
+                java.lang.reflect.Field textField = cueObj.getClass().getField("text");
+                Object textVal = textField.get(cueObj);
+                if (textVal != null && textVal instanceof CharSequence) {
+                    String text = textVal.toString();
+                    if (!text.isEmpty()) {
+                        if (sb.length() > 0) sb.append("\n");
+                        sb.append(text);
+                    }
+                }
+            } catch (Exception ignored) {}
         }
         final String subtitleText = sb.toString();
         if (subtitleText.equals(mLastSubtitleText)) return;
         mLastSubtitleText = subtitleText;
 
-        // 更新到字幕视图（如果已设置）
+        // 更新到字幕视图
         if (mSubtitleOutput != null) {
-            new Handler(Looper.getMainLooper()).post(() -> {
-                if (mSubtitleOutput != null) {
-                    mSubtitleOutput.setText(subtitleText);
-                    mSubtitleOutput.setVisibility(android.view.View.VISIBLE);
-                }
+            final android.widget.TextView output = mSubtitleOutput;
+            output.post(() -> {
+                output.setText(subtitleText);
+                output.setVisibility(android.view.View.VISIBLE);
             });
         }
     }
