@@ -232,3 +232,5 @@ public class ExoPlayer extends Media3ExoPlayer {
             LOG.i("selectSubtitleTrack error: " + e.getMessage());
         }
     }
+
+}
