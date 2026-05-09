@@ -703,11 +703,8 @@ public class PlayActivity extends BaseActivity {
             ExoPlayer exoPlayer = (ExoPlayer) mVideoView.getMediaPlayer();
             //加载上一次选中的
             exoPlayer.loadDefaultTrack(progressKey);
-            //检查是否有字幕轨道
-            if (exoPlayer.hasSubtitleTracks()) {
-                mController.mSubtitleView.hasInternal = true;
-                android.util.Log.i("IJK_SUB", "Exo detected subtitle tracks");
-            }
+            //Exo始终显示内置字幕按钮(Media3支持更多字幕格式)
+            mController.mSubtitleView.hasInternal = true;
             //Exo内置字幕: 通过动态代理监听 onCues
             exoPlayer.setExoSubtitleListener(text -> {
                 if (!mController.mSubtitleView.hasInternal) {
