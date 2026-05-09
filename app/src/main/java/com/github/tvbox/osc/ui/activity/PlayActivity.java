@@ -1126,7 +1126,12 @@ public class PlayActivity extends BaseActivity {
             mController.showParse(false);
             return;
         }
-        sourceViewModel.getPlay(sourceKey, mVodInfo.playFlag, progressKey, vs.url, subtitleCacheKey);
+        if ("drive".equals(sourceKey)) {
+            // 文件管理器直接播放，不走蜘蛛解析
+            playUrl(vs.url, null);
+        } else {
+            sourceViewModel.getPlay(sourceKey, mVodInfo.playFlag, progressKey, vs.url, subtitleCacheKey);
+        }
     }
 
     private String playSubtitle;

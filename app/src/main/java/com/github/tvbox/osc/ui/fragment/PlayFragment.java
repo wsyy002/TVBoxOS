@@ -462,23 +462,24 @@ public class PlayFragment extends BaseLazyFragment {
                     for (TrackInfoBean subtitle : bean) {
                         subtitle.selected = subtitle.index == value.index;
                     }
-                    mediaPlayer.pause();
-                    long progress = mediaPlayer.getCurrentPosition();
                     mController.mSubtitleView.destroy();
                     mController.mSubtitleView.clearSubtitleCache();
                     mController.mSubtitleView.isInternal = true;
                     if (mediaPlayer instanceof com.github.tvbox.osc.player.ExoPlayer) {
+                        // Exo切换字幕轨道时直接选择，不pause/seek（避免重置位置）
                         ((com.github.tvbox.osc.player.ExoPlayer) mediaPlayer).selectSubtitleTrack(value.groupIndex, value.index);
                     } else if (mediaPlayer instanceof IjkMediaPlayer) {
+                        mediaPlayer.pause();
+                        long progress = mediaPlayer.getCurrentPosition();
                         ((IjkMediaPlayer)mediaPlayer).setTrack(value.index);
+                        new android.os.Handler().postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                mediaPlayer.seekTo(progress);
+                                mediaPlayer.start();
+                            }
+                        }, 800);
                     }
-                    new android.os.Handler().postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            mediaPlayer.seekTo(progress);
-                            mediaPlayer.start();
-                        }
-                    }, 800);
                     dialog.dismiss();
                 } catch (Exception e) {
                     LOG.e("切换内置字幕出错: " + e.getMessage());
