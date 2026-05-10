@@ -561,23 +561,29 @@ public class DriveActivity extends BaseActivity {
         } else if (fileType == StorageDriveType.TYPE.SMB) {
             String smbPath = driveUrl;
             if (!smbPath.endsWith("/")) smbPath += "/";
-            String smbUrl = smbPath + pathSuffix;
-            android.util.Log.i("SMB_PLAY", "smbUrl=" + smbUrl);
+            String smbPathFull = smbPath + pathSuffix;
+            android.util.Log.i("SMB_PLAY", "smbUrl=" + smbPathFull);
             // 从 driveData 配置中提取 SMB 认证信息
             String smbUser = "", smbPass = "", smbDomain = "WORKGROUP";
             try {
                 if (driveData != null && driveData.configJson != null && !driveData.configJson.isEmpty()) {
                     com.google.gson.JsonObject cfg = com.google.gson.JsonParser.parseString(driveData.configJson).getAsJsonObject();
                     if (cfg.has("用户名")) smbUser = cfg.get("用户名").getAsString();
-                    android.util.Log.i("SMB_PLAY", "user=" + smbUser);
                     if (cfg.has("密码")) smbPass = cfg.get("密码").getAsString();
                     if (cfg.has("域")) smbDomain = cfg.get("域").getAsString();
                 }
             } catch (Exception ignored) {}
             android.util.Log.i("SMB_PLAY", "user=" + smbUser + " domain=" + smbDomain);
-            playUrl = com.github.tvbox.osc.util.LocalProxyServer.getInstance()
-                    .registerSmbStream(smbUrl, smbUser, smbPass, smbDomain);
-            android.util.Log.i("SMB_PLAY", "proxyUrl=" + playUrl);
+            // 将认证信息嵌入 URL，SmbDataSource 直接解析读取
+            java.net.URI smbUri = java.net.URI.create(smbPathFull);
+            String authPart = java.net.URLEncoder.encode(smbUser, "UTF-8") + ":"
+                    + java.net.URLEncoder.encode(smbPass, "UTF-8");
+            String domPart = (smbDomain != null && !smbDomain.isEmpty() && !"WORKGROUP".equals(smbDomain))
+                    ? "#" + java.net.URLEncoder.encode(smbDomain, "UTF-8") : "";
+            playUrl = "smb://" + authPart + "@" + smbUri.getHost()
+                    + (smbUri.getPort() > 0 ? ":" + smbUri.getPort() : "")
+                    + smbUri.getPath() + domPart;
+            android.util.Log.i("SMB_PLAY", "directUrl=" + playUrl);
         } else if (fileType == StorageDriveType.TYPE.FTP) {
             String ftpUrl = "ftp://" + driveUrl + "/" + pathSuffix;
             playUrl = com.github.tvbox.osc.util.LocalProxyServer.getInstance().proxyUrl(ftpUrl);

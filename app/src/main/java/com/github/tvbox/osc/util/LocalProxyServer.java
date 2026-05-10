@@ -31,20 +31,16 @@ public class LocalProxyServer extends NanoHTTPD {
 
     private LocalProxyServer() {
         super(PORT);
-        // 配置 jcifs-ng 加速：禁用 DFS 发现、缩短超时
+        // 通过系统属性配置 jcifs-ng（某些版本 Config.setProperty 不存在）
         try {
-            Class<?> jcifsConfig = Class.forName("jcifs.Config");
-            // setProperty(String, Object) 
-            java.lang.reflect.Method setProp = jcifsConfig.getMethod("setProperty", String.class, Object.class);
-            setProp.invoke(null, "jcifs.smb.client.dfs.disabled", "true");
-            setProp.invoke(null, "jcifs.smb.client.connTimeout", "2000");
-            setProp.invoke(null, "jcifs.smb.client.responseTimeout", "5000");
-            // 限定 SMB 版本（部分老旧路由器 SMB3 协商慢）
-            setProp.invoke(null, "jcifs.smb.client.minVersion", "2");
-            setProp.invoke(null, "jcifs.smb.client.maxVersion", "2");
-            Log.i(TAG, "jcifs-ng configured for speed");
+            System.setProperty("jcifs.smb.client.dfs.disabled", "true");
+            System.setProperty("jcifs.smb.client.connTimeout", "2000");
+            System.setProperty("jcifs.smb.client.responseTimeout", "5000");
+            System.setProperty("jcifs.smb.client.minVersion", "2");
+            System.setProperty("jcifs.smb.client.maxVersion", "2");
+            Log.i(TAG, "jcifs-ng system properties set");
         } catch (Exception e) {
-            Log.w(TAG, "jcifs config not available: " + e.getMessage());
+            Log.w(TAG, "jcifs sysprop failed: " + e.getMessage());
         }
     }
 

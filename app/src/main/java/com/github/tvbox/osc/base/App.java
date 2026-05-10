@@ -40,6 +40,17 @@ public class App extends MultiDexApplication {
     public void onCreate() {
         super.onCreate();
         instance = this;
+        // 配置 jcifs-ng SMB 加速
+        try {
+            System.setProperty("jcifs.smb.client.dfs.disabled", "true");
+            System.setProperty("jcifs.smb.client.connTimeout", "3000");
+            System.setProperty("jcifs.smb.client.responseTimeout", "5000");
+            System.setProperty("jcifs.smb.client.minVersion", "2");
+            System.setProperty("jcifs.smb.client.maxVersion", "2");
+            android.util.Log.i("SmbCfg", "jcifs-ng properties set");
+        } catch (Exception e) {
+            android.util.Log.w("SmbCfg", "jcifs sysprop: " + e.getMessage());
+        }
         initParams();
         // OKGo
         OkGoHelper.init(); //台标获取

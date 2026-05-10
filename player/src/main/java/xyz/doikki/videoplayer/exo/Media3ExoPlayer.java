@@ -175,13 +175,18 @@ public class Media3ExoPlayer extends AbstractPlayer implements Player.Listener {
         // 检测协议，创建对应的 MediaItem
         MediaItem mediaItem;
 
-        if (path.startsWith("smb://") || path.startsWith("ftp://") || path.startsWith("ftps://")) {
-            // SMB/FTP 通过本地代理中转（由 LocalProxyServer 处理）
+        if (path.startsWith("smb://")) {
+            // SMB 直接通过 SmbDataSource 读取，不走 HTTP 代理（代理性能差）
+            mediaItem = buildMediaItem(path, headers);
+            mMediaSource = new ProgressiveMediaSource.Factory(new SmbDataSourceFactory())
+                    .createMediaSource(mediaItem);
+            return;
+        } else if (path.startsWith("ftp://") || path.startsWith("ftps://")) {
+            // FTP 通过本地代理中转
             String proxyUrl = getLocalProxyUrl(path);
             if (proxyUrl != null) {
                 mediaItem = buildMediaItem(proxyUrl, headers);
             } else {
-                // 如果代理未启动，尝试直接解析
                 mediaItem = buildMediaItem(path, headers);
             }
         } else {
