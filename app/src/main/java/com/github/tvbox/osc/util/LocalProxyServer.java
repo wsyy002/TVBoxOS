@@ -20,7 +20,7 @@ import fi.iki.elonen.NanoHTTPD;
 public class LocalProxyServer extends NanoHTTPD {
 
     private static final String TAG = "LocalProxyServer";
-    private static final int PORT = 9978;
+    private static final int PORT = 19978;
     private static LocalProxyServer instance;
 
     // 存储代理流映射
