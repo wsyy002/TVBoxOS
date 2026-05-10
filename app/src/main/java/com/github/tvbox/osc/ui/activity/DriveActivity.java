@@ -534,11 +534,16 @@ public class DriveActivity extends BaseActivity {
     }
 
     private void playFile(DriveFolderFile file) {
+        try {
+        android.util.Log.i("SMB_PLAY", "playFile START: " + (file != null ? file.name : "null"));
         String playUrl;
         StorageDrive driveData = viewModel.getCurrentDrive() != null ? viewModel.getCurrentDrive().getDriveData() : null;
+        android.util.Log.i("SMB_PLAY", "driveData=" + (driveData != null ? driveData.name : "null"));
         String driveUrl = getDriveUrl(driveData);
+        android.util.Log.i("SMB_PLAY", "driveUrl=" + driveUrl);
         String pathSuffix = viewModel.getCurrentDriveNote().getAccessingPathStr()
                 + viewModel.getCurrentDriveNote().name + "/" + file.name;
+        android.util.Log.i("SMB_PLAY", "pathSuffix=" + pathSuffix);
 
         if (file.getDriveType() == StorageDriveType.TYPE.LOCAL) {
             String localPath = driveUrl;
@@ -596,6 +601,10 @@ public class DriveActivity extends BaseActivity {
         android.content.Intent intent = new Intent(this, PlayActivity.class);
         intent.putExtra("sourceKey", "drive");
         startActivity(intent);
+        } catch (Exception e) {
+            android.util.Log.e("SMB_PLAY", "playFile crashed", e);
+            Toast.makeText(this, "文件播放出错: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
     }
 
     private void initData() {
