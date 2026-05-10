@@ -107,6 +107,10 @@ public class LocalProxyServer extends NanoHTTPD {
                     Log.i(TAG, "SMB step7: getInputStream");
                     java.lang.reflect.Method getInputStream = smbFileClass.getMethod("getInputStream");
                     InputStream result = (InputStream) getInputStream.invoke(smbFile);
+                    // 加缓冲区优化读取速度
+                    if (result != null) {
+                        result = new java.io.BufferedInputStream(result, 1024 * 256);
+                    }
                     Log.i(TAG, "SMB step7 OK: stream=" + (result != null));
                     return result;
                 } catch (Exception e) {
