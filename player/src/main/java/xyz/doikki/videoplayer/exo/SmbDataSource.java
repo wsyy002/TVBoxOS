@@ -10,6 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import androidx.annotation.Nullable;
 import androidx.media3.datasource.DataSource;
 import androidx.media3.datasource.DataSpec;
+import androidx.media3.datasource.TransferListener;
 
 /**
  * 直接从 SMB 文件读取的 DataSource，绕过 HTTP 代理
@@ -158,7 +159,7 @@ public class SmbDataSource implements DataSource {
     }
 
     @Override
-    public void addTransferListener(androidx.media3.datasource.DataSource.TransferListener transferListener) {
+    public void addTransferListener(TransferListener transferListener) {
         // not needed
     }
 }
