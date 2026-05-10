@@ -181,10 +181,4 @@ public class SmbDataSource implements DataSource {
     public void addTransferListener(TransferListener transferListener) {
         // 不需要传输监听
     }
-
-    // 用于 DataSpec 中的 C.LENGTH_UNSET
-    private static final class C {
-        static final long LENGTH_UNSET = -1;
-        static final int RESULT_END_OF_INPUT = -1;
-    }
 }

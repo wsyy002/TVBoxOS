@@ -574,15 +574,18 @@ public class DriveActivity extends BaseActivity {
                 }
             } catch (Exception ignored) {}
             android.util.Log.i("SMB_PLAY", "user=" + smbUser + " domain=" + smbDomain);
-            // 将认证信息嵌入 URL，SmbDataSource 直接解析读取
-            java.net.URI smbUri = java.net.URI.create(smbPathFull);
-            String authPart = java.net.URLEncoder.encode(smbUser, "UTF-8") + ":"
-                    + java.net.URLEncoder.encode(smbPass, "UTF-8");
-            String domPart = (smbDomain != null && !smbDomain.isEmpty() && !"WORKGROUP".equals(smbDomain))
+            // 手动构造 SMB URL（避免 URI.create 对中文路径报错）
+            // 从 smbPath 中提取 host:port
+            String hostPart = smbPath;
+            if (hostPart.startsWith("smb://")) hostPart = hostPart.substring(6);
+            hostPart = hostPart.replaceAll("/+$", ""); // 去掉尾部 /
+            // 加上认证和路径
+            String userPass = (smbUser != null && !smbUser.isEmpty())
+                    ? java.net.URLEncoder.encode(smbUser, "UTF-8") + ":" + java.net.URLEncoder.encode(smbPass, "UTF-8") + "@"
+                    : "";
+            String domFragment = (smbDomain != null && !smbDomain.isEmpty() && !"WORKGROUP".equals(smbDomain))
                     ? "#" + java.net.URLEncoder.encode(smbDomain, "UTF-8") : "";
-            playUrl = "smb://" + authPart + "@" + smbUri.getHost()
-                    + (smbUri.getPort() > 0 ? ":" + smbUri.getPort() : "")
-                    + smbUri.getPath() + domPart;
+            playUrl = "smb://" + userPass + hostPart + "/" + pathSuffix + domFragment;
             android.util.Log.i("SMB_PLAY", "directUrl=" + playUrl);
         } else if (fileType == StorageDriveType.TYPE.FTP) {
             String ftpUrl = "ftp://" + driveUrl + "/" + pathSuffix;
