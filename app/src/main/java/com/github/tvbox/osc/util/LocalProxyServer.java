@@ -91,14 +91,15 @@ public class LocalProxyServer extends NanoHTTPD {
                     Log.i(TAG, "SMB step4 OK");
 
                     Log.i(TAG, "SMB step5: getInputStream");
-                    // 直接用 getInputStream，跳过 length()（之前 SMB 服务器此调用耗时 13s）
                     java.lang.reflect.Method getInputStream = smbFileClass.getMethod("getInputStream");
                     long t1 = System.currentTimeMillis();
                     InputStream result = (InputStream) getInputStream.invoke(smbFile);
+                    long t2 = System.currentTimeMillis();
+                    Log.i(TAG, "SMB step5: invoke time=" + (t2 - t1) + "ms");
                     if (result != null) {
                         result = new java.io.BufferedInputStream(result, 1024 * 256);
                     }
-                    Log.i(TAG, "SMB step5 OK: stream=" + (result != null) + " time=" + (t1-t0) + "ms");
+                    Log.i(TAG, "SMB step5 OK: stream=" + (result != null) + " total=" + (t2-t0) + "ms");
                     return result;
                 } catch (Exception e) {
                     StringWriter sw = new StringWriter();
