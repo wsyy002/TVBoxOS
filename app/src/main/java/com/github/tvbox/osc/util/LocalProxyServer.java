@@ -34,10 +34,14 @@ public class LocalProxyServer extends NanoHTTPD {
         // 配置 jcifs-ng 加速：禁用 DFS 发现、缩短超时
         try {
             Class<?> jcifsConfig = Class.forName("jcifs.Config");
-            java.lang.reflect.Method setProp = jcifsConfig.getMethod("setProperty", String.class, String.class);
+            // setProperty(String, Object) 
+            java.lang.reflect.Method setProp = jcifsConfig.getMethod("setProperty", String.class, Object.class);
             setProp.invoke(null, "jcifs.smb.client.dfs.disabled", "true");
             setProp.invoke(null, "jcifs.smb.client.connTimeout", "2000");
             setProp.invoke(null, "jcifs.smb.client.responseTimeout", "5000");
+            // 限定 SMB 版本（部分老旧路由器 SMB3 协商慢）
+            setProp.invoke(null, "jcifs.smb.client.minVersion", "2");
+            setProp.invoke(null, "jcifs.smb.client.maxVersion", "2");
             Log.i(TAG, "jcifs-ng configured for speed");
         } catch (Exception e) {
             Log.w(TAG, "jcifs config not available: " + e.getMessage());
