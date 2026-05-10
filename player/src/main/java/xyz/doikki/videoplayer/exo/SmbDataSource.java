@@ -52,14 +52,14 @@ public class SmbDataSource implements DataSource {
             String username = "", password = "", domain = "WORKGROUP";
             if (userInfo != null && userInfo.contains(":")) {
                 String[] parts = userInfo.split(":", 2);
-                username = parts[0];
-                password = parts[1];
+                username = java.net.URLDecoder.decode(parts[0], "UTF-8");
+                password = java.net.URLDecoder.decode(parts[1], "UTF-8");
             } else if (userInfo != null) {
-                username = userInfo;
+                username = java.net.URLDecoder.decode(userInfo, "UTF-8");
             }
             // 从URI片段中提取domain（如果有的话）
             if (uri.getFragment() != null) {
-                domain = uri.getFragment();
+                domain = java.net.URLDecoder.decode(uri.getFragment(), "UTF-8");
             }
 
             // 反射创建 SmbFile
