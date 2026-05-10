@@ -544,7 +544,11 @@ public class DriveActivity extends BaseActivity {
         String pathSuffix = viewModel.getCurrentDriveNote().getAccessingPathStr()
                 + viewModel.getCurrentDriveNote().name + "/" + file.name;
         android.util.Log.i("SMB_PLAY", "pathSuffix=" + pathSuffix);
-        StorageDriveType.TYPE fileType = file.getDriveType();
+        // 用 viewModel 的根 drive 判断类型，file.getDriveType() 查不到根的 driveData
+        StorageDriveType.TYPE fileType = StorageDriveType.TYPE.LOCAL;
+        if (viewModel != null && viewModel.getCurrentDrive() != null) {
+            fileType = viewModel.getCurrentDrive().getDriveType();
+        }
         android.util.Log.i("SMB_PLAY", "fileType=" + fileType + " ordinal=" + (fileType != null ? fileType.ordinal() : -1));
 
         if (fileType == StorageDriveType.TYPE.LOCAL) {
