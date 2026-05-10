@@ -26,8 +26,22 @@ public class LocalProxyServer extends NanoHTTPD {
     // 存储代理流映射
     private final ConcurrentHashMap<String, StreamSource> streamMap = new ConcurrentHashMap<>();
 
+    // 缓存已认证的 SMB CIFSContext，避免每次新建会话
+    private static final ConcurrentHashMap<String, Object> smbCtxCache = new ConcurrentHashMap<>();
+
     private LocalProxyServer() {
         super(PORT);
+        // 配置 jcifs-ng 加速：禁用 DFS 发现、缩短超时
+        try {
+            Class<?> jcifsConfig = Class.forName("jcifs.Config");
+            java.lang.reflect.Method setProp = jcifsConfig.getMethod("setProperty", String.class, String.class);
+            setProp.invoke(null, "jcifs.smb.client.dfs.disabled", "true");
+            setProp.invoke(null, "jcifs.smb.client.connTimeout", "2000");
+            setProp.invoke(null, "jcifs.smb.client.responseTimeout", "5000");
+            Log.i(TAG, "jcifs-ng configured for speed");
+        } catch (Exception e) {
+            Log.w(TAG, "jcifs config not available: " + e.getMessage());
+        }
     }
 
     public static synchronized LocalProxyServer getInstance() {
@@ -75,14 +89,23 @@ public class LocalProxyServer extends NanoHTTPD {
                     Log.i(TAG, "SMB step2 OK");
 
                     if (username != null && !username.isEmpty()) {
-                        Log.i(TAG, "SMB step3: NtlmPasswordAuth user=" + username + " domain=" + domain);
-                        java.lang.reflect.Constructor<?> authCtor = authClass.getConstructor(ctxClass, String.class, String.class, String.class);
-                        String dom = (domain != null && !domain.isEmpty()) ? domain : "WORKGROUP";
-                        Object auth = authCtor.newInstance(baseCtx, dom, username, password);
-                        Class<?> credsClass = Class.forName("jcifs.Credentials");
-                        java.lang.reflect.Method withCreds = ctxClass.getMethod("withCredentials", credsClass);
-                        baseCtx = withCreds.invoke(baseCtx, auth);
-                        Log.i(TAG, "SMB step3 OK");
+                        // 缓存 CIFSContext，复用已建立的 SMB 会话（其他播放器能秒开的原因）
+                        String ctxKey = username + "@" + domain;
+                        Object cachedCtx = smbCtxCache.get(ctxKey);
+                        if (cachedCtx != null) {
+                            baseCtx = cachedCtx;
+                            Log.i(TAG, "SMB step3: reuse cached CIFSContext for " + ctxKey);
+                        } else {
+                            Log.i(TAG, "SMB step3: creating NtlmPasswordAuth user=" + username + " domain=" + domain);
+                            java.lang.reflect.Constructor<?> authCtor = authClass.getConstructor(ctxClass, String.class, String.class, String.class);
+                            String dom = (domain != null && !domain.isEmpty()) ? domain : "WORKGROUP";
+                            Object auth = authCtor.newInstance(baseCtx, dom, username, password);
+                            Class<?> credsClass = Class.forName("jcifs.Credentials");
+                            java.lang.reflect.Method withCreds = ctxClass.getMethod("withCredentials", credsClass);
+                            baseCtx = withCreds.invoke(baseCtx, auth);
+                            smbCtxCache.put(ctxKey, baseCtx);
+                            Log.i(TAG, "SMB step3: created and cached CIFSContext for " + ctxKey);
+                        }
                     }
 
                     Log.i(TAG, "SMB step4: creating SmbFile");
