@@ -94,12 +94,25 @@ public class LocalProxyServer extends NanoHTTPD {
                     Object smbFile = fileCtor.newInstance(smbUrl, baseCtx);
                     Log.i(TAG, "SMB step5 OK: smbFile=" + (smbFile != null));
 
-                    Log.i(TAG, "SMB step6: get file length");
+                    Log.i(TAG, "SMB step6: get file length (optional)");
                     try {
-                        java.lang.reflect.Method lengthMethod = smbFileClass.getMethod("length");
-                        Object len = lengthMethod.invoke(smbFile);
-                        if (len instanceof Long) knownSize[0] = (Long) len;
-                        Log.i(TAG, "SMB step6 OK: length=" + knownSize[0]);
+                        // 某些 SMB 服务器上 length() 可能很慢（3GB文件耗时十几秒）
+                        // 用线程 + 超时控制，最多等1秒，超时后跳过直接返回流
+                        final Object[] lenResult = {null};
+                        Thread lengthThread = new Thread(() -> {
+                            try {
+                                java.lang.reflect.Method lengthMethod = smbFileClass.getMethod("length");
+                                lenResult[0] = lengthMethod.invoke(smbFile);
+                            } catch (Exception ignored) {}
+                        });
+                        lengthThread.start();
+                        lengthThread.join(1000); // 最多等1秒
+                        if (!lengthThread.isAlive() && lenResult[0] instanceof Long) {
+                            knownSize[0] = (Long) lenResult[0];
+                            Log.i(TAG, "SMB step6 OK: length=" + knownSize[0]);
+                        } else {
+                            Log.w(TAG, "SMB step6: skipped (timeout), continuing without file size");
+                        }
                     } catch (Exception e2) {
                         Log.w(TAG, "SMB step6 failed: " + e2.getMessage());
                     }
