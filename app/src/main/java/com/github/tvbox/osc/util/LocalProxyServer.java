@@ -5,6 +5,8 @@ import android.util.Log;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.io.StringWriter;
+import java.io.PrintWriter;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -58,36 +60,60 @@ public class LocalProxyServer extends NanoHTTPD {
         StreamSource source = new StreamSource() {
             @Override
             public InputStream openStream() throws Exception {
+                Log.i(TAG, "SMB openStream START: " + smbUrl);
                 try {
+                    Log.i(TAG, "SMB step1: loading jcifs classes");
                     Class<?> smbFileClass = Class.forName("jcifs.smb.SmbFile");
                     Class<?> authClass = Class.forName("jcifs.smb.NtlmPasswordAuthentication");
                     Class<?> ctxClass = Class.forName("jcifs.CIFSContext");
                     Class<?> ctxSingleClass = Class.forName("jcifs.context.SingletonContext");
+                    Log.i(TAG, "SMB step1 OK");
 
+                    Log.i(TAG, "SMB step2: get SingletonContext");
                     Object baseCtx = ctxSingleClass.getMethod("getInstance").invoke(null);
+                    Log.i(TAG, "SMB step2 OK: baseCtx=" + (baseCtx != null));
+
                     if (username != null && !username.isEmpty()) {
+                        Log.i(TAG, "SMB step3: creating NtlmPasswordAuth user=" + username + " domain=" + domain);
                         java.lang.reflect.Constructor<?> authCtor = authClass.getConstructor(ctxClass, String.class, String.class, String.class);
                         String dom = (domain != null && !domain.isEmpty()) ? domain : "WORKGROUP";
                         Object auth = authCtor.newInstance(baseCtx, dom, username, password);
+                        Log.i(TAG, "SMB step3 OK: auth=" + (auth != null));
+
+                        Log.i(TAG, "SMB step4: withCredentials");
                         Class<?> credsClass = Class.forName("jcifs.Credentials");
                         java.lang.reflect.Method withCreds = ctxClass.getMethod("withCredentials", credsClass);
                         baseCtx = withCreds.invoke(baseCtx, auth);
+                        Log.i(TAG, "SMB step4 OK");
+                    } else {
+                        Log.i(TAG, "SMB step3-4: no auth (guest)");
                     }
 
+                    Log.i(TAG, "SMB step5: creating SmbFile");
                     java.lang.reflect.Constructor<?> fileCtor = smbFileClass.getConstructor(String.class, ctxClass);
                     Object smbFile = fileCtor.newInstance(smbUrl, baseCtx);
+                    Log.i(TAG, "SMB step5 OK: smbFile=" + (smbFile != null));
 
-                    // 获取文件大小以支持拖动进度条
+                    Log.i(TAG, "SMB step6: get file length");
                     try {
                         java.lang.reflect.Method lengthMethod = smbFileClass.getMethod("length");
                         Object len = lengthMethod.invoke(smbFile);
                         if (len instanceof Long) knownSize[0] = (Long) len;
-                    } catch (Exception ignored) {}
+                        Log.i(TAG, "SMB step6 OK: length=" + knownSize[0]);
+                    } catch (Exception e2) {
+                        Log.w(TAG, "SMB step6 failed: " + e2.getMessage());
+                    }
 
+                    Log.i(TAG, "SMB step7: getInputStream");
                     java.lang.reflect.Method getInputStream = smbFileClass.getMethod("getInputStream");
-                    return (InputStream) getInputStream.invoke(smbFile);
+                    InputStream result = (InputStream) getInputStream.invoke(smbFile);
+                    Log.i(TAG, "SMB step7 OK: stream=" + (result != null));
+                    return result;
                 } catch (Exception e) {
-                    Log.e(TAG, "SMB stream open failed: " + e.getMessage());
+                    StringWriter sw = new StringWriter();
+                    PrintWriter pw = new PrintWriter(sw);
+                    e.printStackTrace(pw);
+                    Log.e(TAG, "SMB openStream FAILED at step: " + e.getClass().getSimpleName() + ": " + e.getMessage() + "\n" + sw.toString());
                     throw e;
                 }
             }
