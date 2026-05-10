@@ -544,15 +544,17 @@ public class DriveActivity extends BaseActivity {
         String pathSuffix = viewModel.getCurrentDriveNote().getAccessingPathStr()
                 + viewModel.getCurrentDriveNote().name + "/" + file.name;
         android.util.Log.i("SMB_PLAY", "pathSuffix=" + pathSuffix);
+        StorageDriveType.TYPE fileType = file.getDriveType();
+        android.util.Log.i("SMB_PLAY", "fileType=" + fileType + " ordinal=" + (fileType != null ? fileType.ordinal() : -1));
 
-        if (file.getDriveType() == StorageDriveType.TYPE.LOCAL) {
+        if (fileType == StorageDriveType.TYPE.LOCAL) {
             String localPath = driveUrl;
             if (!localPath.endsWith("/")) localPath += "/";
             playUrl = "file://" + localPath + pathSuffix;
-        } else if (file.getDriveType() == StorageDriveType.TYPE.WEBDAV) {
+        } else if (fileType == StorageDriveType.TYPE.WEBDAV) {
             playUrl = driveUrl + "/" + pathSuffix;
             playUrl = com.github.tvbox.osc.util.LocalProxyServer.getInstance().proxyUrl(playUrl);
-        } else if (file.getDriveType() == StorageDriveType.TYPE.SMB) {
+        } else if (fileType == StorageDriveType.TYPE.SMB) {
             String smbPath = driveUrl;
             if (!smbPath.endsWith("/")) smbPath += "/";
             String smbUrl = smbPath + pathSuffix;
@@ -572,7 +574,7 @@ public class DriveActivity extends BaseActivity {
             playUrl = com.github.tvbox.osc.util.LocalProxyServer.getInstance()
                     .registerSmbStream(smbUrl, smbUser, smbPass, smbDomain);
             android.util.Log.i("SMB_PLAY", "proxyUrl=" + playUrl);
-        } else if (file.getDriveType() == StorageDriveType.TYPE.FTP) {
+        } else if (fileType == StorageDriveType.TYPE.FTP) {
             String ftpUrl = "ftp://" + driveUrl + "/" + pathSuffix;
             playUrl = com.github.tvbox.osc.util.LocalProxyServer.getInstance().proxyUrl(ftpUrl);
         } else {
