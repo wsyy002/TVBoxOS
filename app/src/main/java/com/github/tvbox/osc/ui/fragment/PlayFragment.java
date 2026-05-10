@@ -1638,29 +1638,25 @@ public class PlayFragment extends BaseLazyFragment {
     }
 
     void initWebView(boolean useSystemWebView) {
+        // 使用 requireActivity() 作为 WebView 的 context（米TV上 fragment context 创建 WebView 会 native crash）
+        android.content.Context webCtx = isAdded() ? requireActivity() : mContext;
+        if (webCtx == null) return;
         if (useSystemWebView) {
             try {
-                mSysWebView = new MyWebView(mContext);
+                mSysWebView = new MyWebView(webCtx);
                 configWebViewSys(mSysWebView);
             } catch (Throwable th) {
-                android.util.Log.e("WebViewInit", "Failed to init system WebView", th);
-                try {
-                    // 部分小米电视WebView可能缺失，尝试XWalk备选
-                    mXwalkWebView = new MyXWalkView(mContext);
-                    configWebViewX5(mXwalkWebView);
-                    useSystemWebView = false;
-                } catch (Throwable th2) {
-                    android.util.Log.e("WebViewInit", "Both WebView and XWalk failed", th2);
-                    Toast.makeText(mContext, "当前设备不支持网页解析，请切换播放器或源", Toast.LENGTH_LONG).show();
-                }
+                android.util.Log.e("WebViewInit", "System WebView failed: " + th.getMessage());
+                // 不尝试 XWalk 了，直接提示
+                Toast.makeText(webCtx, "当前设备不支持网页解析，请切换播放器或源", Toast.LENGTH_LONG).show();
             }
         } else {
             try {
-                mXwalkWebView = new MyXWalkView(mContext);
+                mXwalkWebView = new MyXWalkView(webCtx);
                 configWebViewX5(mXwalkWebView);
             } catch (Throwable th) {
-                android.util.Log.e("WebViewInit", "Failed to init XWalk", th);
-                Toast.makeText(mContext, "当前设备不支持网页解析，请切换播放器或源", Toast.LENGTH_LONG).show();
+                android.util.Log.e("WebViewInit", "XWalk failed: " + th.getMessage());
+                Toast.makeText(webCtx, "当前设备不支持网页解析，请切换播放器或源", Toast.LENGTH_LONG).show();
             }
         }
     }
