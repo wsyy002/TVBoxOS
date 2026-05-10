@@ -65,39 +65,27 @@ public class LocalProxyServer extends NanoHTTPD {
                     Log.i(TAG, "SMB step1: loading jcifs classes");
                     Class<?> smbFileClass = Class.forName("jcifs.smb.SmbFile");
                     Class<?> authClass = Class.forName("jcifs.smb.NtlmPasswordAuthentication");
-                    Class<?> ctxClass = Class.forName("jcifs.CIFSContext");
-                    Class<?> ctxSingleClass = Class.forName("jcifs.context.SingletonContext");
                     Log.i(TAG, "SMB step1 OK");
 
-                    Log.i(TAG, "SMB step2: get SingletonContext");
-                    Object baseCtx = ctxSingleClass.getMethod("getInstance").invoke(null);
-                    Log.i(TAG, "SMB step2 OK: baseCtx=" + (baseCtx != null));
-
+                    Object smbFile;
                     if (username != null && !username.isEmpty()) {
-                        Log.i(TAG, "SMB step3: creating NtlmPasswordAuth user=" + username + " domain=" + domain);
-                        java.lang.reflect.Constructor<?> authCtor = authClass.getConstructor(ctxClass, String.class, String.class, String.class);
+                        // 直接用 SmbFile(url, NtlmPasswordAuthentication(domain, user, pass)) 简化auth
+                        // 跳过复杂的 CIFSContext/withCredentials 反射链
+                        Log.i(TAG, "SMB step2: creating SmbFile with auth user=" + username);
                         String dom = (domain != null && !domain.isEmpty()) ? domain : "WORKGROUP";
-                        Object auth = authCtor.newInstance(baseCtx, dom, username, password);
-                        Log.i(TAG, "SMB step3 OK: auth=" + (auth != null));
-
-                        Log.i(TAG, "SMB step4: withCredentials");
-                        Class<?> credsClass = Class.forName("jcifs.Credentials");
-                        java.lang.reflect.Method withCreds = ctxClass.getMethod("withCredentials", credsClass);
-                        baseCtx = withCreds.invoke(baseCtx, auth);
-                        Log.i(TAG, "SMB step4 OK");
+                        java.lang.reflect.Constructor<?> authCtor = authClass.getConstructor(String.class, String.class, String.class);
+                        Object auth = authCtor.newInstance(dom, username, password);
+                        java.lang.reflect.Constructor<?> fileCtor = smbFileClass.getConstructor(String.class, authClass);
+                        smbFile = fileCtor.newInstance(smbUrl, auth);
                     } else {
-                        Log.i(TAG, "SMB step3-4: no auth (guest)");
+                        Log.i(TAG, "SMB step2: creating SmbFile (guest)");
+                        java.lang.reflect.Constructor<?> fileCtor = smbFileClass.getConstructor(String.class);
+                        smbFile = fileCtor.newInstance(smbUrl);
                     }
+                    Log.i(TAG, "SMB step2 OK: smbFile=" + (smbFile != null));
 
-                    Log.i(TAG, "SMB step5: creating SmbFile");
-                    java.lang.reflect.Constructor<?> fileCtor = smbFileClass.getConstructor(String.class, ctxClass);
-                    Object smbFile = fileCtor.newInstance(smbUrl, baseCtx);
-                    Log.i(TAG, "SMB step5 OK: smbFile=" + (smbFile != null));
-
-                    Log.i(TAG, "SMB step6: get file length (optional)");
+                    Log.i(TAG, "SMB step3: get file length (optional)");
                     try {
-                        // 某些 SMB 服务器上 length() 可能很慢（3GB文件耗时十几秒）
-                        // 用线程 + 超时控制，最多等1秒，超时后跳过直接返回流
                         final Object[] lenResult = {null};
                         Thread lengthThread = new Thread(() -> {
                             try {
@@ -106,31 +94,30 @@ public class LocalProxyServer extends NanoHTTPD {
                             } catch (Exception ignored) {}
                         });
                         lengthThread.start();
-                        lengthThread.join(1000); // 最多等1秒
+                        lengthThread.join(1000);
                         if (!lengthThread.isAlive() && lenResult[0] instanceof Long) {
                             knownSize[0] = (Long) lenResult[0];
-                            Log.i(TAG, "SMB step6 OK: length=" + knownSize[0]);
+                            Log.i(TAG, "SMB step3 OK: length=" + knownSize[0]);
                         } else {
-                            Log.w(TAG, "SMB step6: skipped (timeout), continuing without file size");
+                            Log.w(TAG, "SMB step3: skipped (timeout)");
                         }
                     } catch (Exception e2) {
-                        Log.w(TAG, "SMB step6 failed: " + e2.getMessage());
+                        Log.w(TAG, "SMB step3 failed: " + e2.getMessage());
                     }
 
-                    Log.i(TAG, "SMB step7: getInputStream");
+                    Log.i(TAG, "SMB step4: getInputStream");
                     java.lang.reflect.Method getInputStream = smbFileClass.getMethod("getInputStream");
                     InputStream result = (InputStream) getInputStream.invoke(smbFile);
-                    // 加缓冲区优化读取速度
                     if (result != null) {
                         result = new java.io.BufferedInputStream(result, 1024 * 256);
                     }
-                    Log.i(TAG, "SMB step7 OK: stream=" + (result != null));
+                    Log.i(TAG, "SMB step4 OK: stream=" + (result != null));
                     return result;
                 } catch (Exception e) {
                     StringWriter sw = new StringWriter();
                     PrintWriter pw = new PrintWriter(sw);
                     e.printStackTrace(pw);
-                    Log.e(TAG, "SMB openStream FAILED at step: " + e.getClass().getSimpleName() + ": " + e.getMessage() + "\n" + sw.toString());
+                    Log.e(TAG, "SMB openStream FAILED: " + e.getClass().getSimpleName() + ": " + e.getMessage() + "\n" + sw.toString());
                     throw e;
                 }
             }
