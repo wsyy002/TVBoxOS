@@ -1,5 +1,7 @@
 package xyz.doikki.videoplayer.exo;
 
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 import androidx.media3.datasource.DataSource;
 import androidx.media3.datasource.DataSource.Factory;
@@ -12,6 +14,7 @@ public class SmbDataSourceFactory implements Factory {
     @NonNull
     @Override
     public DataSource createDataSource() {
+        Log.i("SmbDS", "Factory.createDataSource()");
         return new SmbDataSource();
     }
 }

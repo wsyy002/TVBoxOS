@@ -176,7 +176,7 @@ public class Media3ExoPlayer extends AbstractPlayer implements Player.Listener {
         MediaItem mediaItem;
 
         if (path.startsWith("smb://")) {
-            // SMB 直接通过 SmbDataSource 读取，不走 HTTP 代理（代理性能差）
+            Log.i(TAG, "SMB direct: " + path);
             mediaItem = buildMediaItem(path, headers);
             mMediaSource = new ProgressiveMediaSource.Factory(new SmbDataSourceFactory())
                     .createMediaSource(mediaItem);
