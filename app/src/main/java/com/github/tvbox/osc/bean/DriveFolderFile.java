@@ -58,11 +58,13 @@ public class DriveFolderFile {
     }
 
     public StorageDriveType.TYPE getDriveType() {
-        if (driveData != null) {
-            return StorageDriveType.TYPE.values()[driveData.driveType];
-        }
-        if (parentFolder != null && parentFolder.driveData != null) {
-            return StorageDriveType.TYPE.values()[parentFolder.driveData.driveType];
+        // 遍历父链直到找到带 driveData 的根节点
+        DriveFolderFile cur = this;
+        while (cur != null) {
+            if (cur.driveData != null) {
+                return StorageDriveType.TYPE.values()[cur.driveData.driveType];
+            }
+            cur = cur.parentFolder;
         }
         return StorageDriveType.TYPE.LOCAL;
     }
