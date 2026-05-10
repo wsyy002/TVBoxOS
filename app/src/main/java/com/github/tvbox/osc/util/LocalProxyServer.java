@@ -233,6 +233,7 @@ public class LocalProxyServer extends NanoHTTPD {
     @Override
     public Response serve(IHTTPSession session) {
         String uri = session.getUri();
+        Log.i(TAG, "serve REQUEST: uri=" + uri + " method=" + session.getMethod());
 
         if (uri.startsWith("/stream/")) {
             String id = uri.substring(8);
